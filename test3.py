@@ -1,8 +1,12 @@
 from file_peaks import get_file_peaks
 from peaks import Peaks
-
+from persistence import Persistence
 
 peaks = get_file_peaks(path="./test.fit")
+
+
+db = Persistence()
+db.store(filename="./test.fit", peaks=peaks)
 
 print(f"Start time ........ {peaks.start_time}")
 print(f"End time .......... {peaks.end_time}")
@@ -28,4 +32,3 @@ print(f"30 minute hr ...... {peaks.peak_30min_hr}")
 print(f"60 minute hr ...... {peaks.peak_60min_hr}")
 print(f"90 minute hr ...... {peaks.peak_90min_hr}")
 print(f"2 hour hr ......... {peaks.peak_120min_hr}")
-

@@ -51,13 +51,15 @@ def get_file_peaks(*, path) -> Peaks:
     # Done
     return peaks
 
-def _load_peaks(source: List[int], attributes: Dict[int,str], peaks: Peaks):
-    
+
+def _load_peaks(source: List[int], attributes: Dict[int, str], peaks: Peaks):
+
     for window, attr_name in attributes.items():
-        if (moving_average := _get_moving_average(source=source, window=window)):
+        if (moving_average := _get_moving_average(source=source, window=window)) :
             peaks.__dict__[attr_name] = int(max(moving_average))
         else:
             peaks.__dict__[attr_name] = None
+
 
 def _load_file_data(*, fitfile: FitFile) -> (datetime, datetime, List[int], List[int]):
 

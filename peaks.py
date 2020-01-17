@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 class Peaks:
 
     # Start and end times
@@ -29,4 +30,3 @@ class Peaks:
     peak_60min_hr: int = None
     peak_90min_hr: int = None
     peak_120min_hr: int = None
-
