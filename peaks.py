@@ -3,11 +3,11 @@ from datetime import datetime
 
 class Peaks:
 
-    # Start and end times
+    # Start and end times.
     start_time: datetime = None
     end_time: datetime = None
 
-    # Power data
+    # Power data.
     peak_5sec_power: int = None
     peak_30sec_power: int = None
     peak_60sec_power: int = None
@@ -19,7 +19,7 @@ class Peaks:
     peak_90min_power: int = None
     peak_120min_power: int = None
 
-    # Heart rate data
+    # Heart rate data.
     peak_5sec_hr: int = None
     peak_30sec_hr: int = None
     peak_60sec_hr: int = None
