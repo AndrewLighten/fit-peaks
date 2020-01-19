@@ -43,7 +43,42 @@ andrew@i9 ~/D/fit-peaks (master)>
 
 Although this example doesn't show it, the maximum figure for each peak is highlighted when the report is displayed.
 
-# License and use
+# Usage
+
+Run from the command line, and specify one of three commands:
+
+```
+andrew@i9 ~/D/fit-peaks (master)> python fit-peaks.py
+Usage: fit-peaks.py [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  hr     Report on peak heart rate
+  power  Report on peak power
+  zwift  Load latest files from Zwift
+andrew@i9 ~/D/fit-peaks (master)> 
+```
+
+Pretty self explanatory. To load Zwift data, for example:
+
+    andrew@i9 ~/D/fit-peaks (master)> python fit-peaks.py zwift
+    
+To generate the power report:
+
+    andrew@i9 ~/D/fit-peaks (master)> python fit-peaks.py power
+
+# Dependencies
+
+Basically, click (for the command line) and fitparse (for parsing the `.fit` files Zwift produces).
+
+- https://github.com/pallets/click
+- https://github.com/dtcooper/python-fitparse
+
+Haven't specified a setup file with these dependencies in it. Probably should. Probably won't.
+
+# License stuff
 
 Go at it. Do what you want.
 
