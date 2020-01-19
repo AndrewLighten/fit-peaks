@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import fitparse.utils
 from persistence import Persistence
@@ -6,7 +7,7 @@ from peaks import Peaks
 from file_peaks import get_file_peaks
 
 
-SOURCE_DIR = "/Users/andrew/Documents/Zwift/Activities"
+SOURCE_DIR = str(Path.home()) + "/Documents/Zwift/Activities"
 
 
 def load_from_zwift():
