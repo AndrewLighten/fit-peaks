@@ -46,3 +46,7 @@ Although this example doesn't show it, the maximum figure for each peak is highl
 # License and use
 
 Go at it. Do what you want.
+
+# Caveats
+
+I've only used and tested this on a Mac. I have no idea whether it works on Windows or not.
