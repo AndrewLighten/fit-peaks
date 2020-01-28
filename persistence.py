@@ -14,6 +14,7 @@ CREATE_TABLE = """
                 filename            varchar         primary key,
                 start_time          timestamp,
                 end_time            timestamp,
+                activity_name       varchar         null,
                 peak_5sec_power     int             null,
                 peak_30sec_power    int             null,
                 peak_60sec_power    int             null,
@@ -39,7 +40,7 @@ CREATE_TABLE = """
 
 SELECT = """
     select
-        filename, start_time, end_time,
+        filename, start_time, end_time, activity_name,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
         peak_5sec_hr,     peak_30sec_hr,    peak_60sec_hr,    peak_5min_hr,     peak_10min_hr,
@@ -54,7 +55,7 @@ SELECT_ALL = SELECT + " where peak_10min_power is not null order by start_time"
 INSERT_SQL = """
     insert into peaks 
     (
-        filename, start_time, end_time,
+        filename, start_time, end_time, activity_name,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
         peak_5sec_hr,     peak_30sec_hr,    peak_60sec_hr,    peak_5min_hr,     peak_10min_hr,
@@ -62,7 +63,7 @@ INSERT_SQL = """
     )
     values 
     (
-        :filename, :start_time, :end_time,
+        :filename, :start_time, :end_time, :activity_name,
         :peak_5sec_power,  :peak_30sec_power, :peak_60sec_power, :peak_5min_power,  :peak_10min_power,
         :peak_20min_power, :peak_30min_power, :peak_60min_power, :peak_90min_power, :peak_120min_power, 
         :peak_5sec_hr,     :peak_30sec_hr,    :peak_60sec_hr,    :peak_5min_hr,     :peak_10min_hr,
@@ -72,6 +73,7 @@ INSERT_SQL = """
     on conflict(filename) do update
     set start_time          = :start_time,
         end_time            = :end_time,
+        activity_name       = :activity_name,
         peak_5sec_power     = :peak_5sec_power,  
         peak_30sec_power    = :peak_30sec_power,
         peak_60sec_power    = :peak_60sec_power,
@@ -194,29 +196,32 @@ class Persistence:
             utc = peaks.end_time.replace(tzinfo=src_tz)
             peaks.end_time = utc.astimezone(dst_tz)
 
+        # Fetch activity name.
+        peaks.activity_name = record[3]
+
         # Fetch power data.
-        peaks.peak_5sec_power = record[3]
-        peaks.peak_30sec_power = record[4]
-        peaks.peak_60sec_power = record[5]
-        peaks.peak_5min_power = record[6]
-        peaks.peak_10min_power = record[7]
-        peaks.peak_20min_power = record[8]
-        peaks.peak_30min_power = record[9]
-        peaks.peak_60min_power = record[10]
-        peaks.peak_90min_power = record[11]
-        peaks.peak_120min_power = record[12]
+        peaks.peak_5sec_power = record[4]
+        peaks.peak_30sec_power = record[5]
+        peaks.peak_60sec_power = record[6]
+        peaks.peak_5min_power = record[7]
+        peaks.peak_10min_power = record[8]
+        peaks.peak_20min_power = record[9]
+        peaks.peak_30min_power = record[10]
+        peaks.peak_60min_power = record[11]
+        peaks.peak_90min_power = record[12]
+        peaks.peak_120min_power = record[13]
 
         # Fetch HR data.
-        peaks.peak_5sec_hr = record[13]
-        peaks.peak_30sec_hr = record[14]
-        peaks.peak_60sec_hr = record[15]
-        peaks.peak_5min_hr = record[16]
-        peaks.peak_10min_hr = record[17]
-        peaks.peak_20min_hr = record[18]
-        peaks.peak_30min_hr = record[19]
-        peaks.peak_60min_hr = record[20]
-        peaks.peak_90min_hr = record[21]
-        peaks.peak_120min_hr = record[22]
+        peaks.peak_5sec_hr = record[14]
+        peaks.peak_30sec_hr = record[15]
+        peaks.peak_60sec_hr = record[16]
+        peaks.peak_5min_hr = record[17]
+        peaks.peak_10min_hr = record[18]
+        peaks.peak_20min_hr = record[19]
+        peaks.peak_30min_hr = record[20]
+        peaks.peak_60min_hr = record[21]
+        peaks.peak_90min_hr = record[22]
+        peaks.peak_120min_hr = record[23]
 
         # Done.
         return peaks

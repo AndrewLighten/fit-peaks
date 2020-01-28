@@ -7,6 +7,9 @@ class Peaks:
     start_time: datetime = None
     end_time: datetime = None
 
+    # Activity name.
+    activity_name: str = ""
+
     # Power data.
     peak_5sec_power: int = None
     peak_30sec_power: int = None

@@ -61,7 +61,7 @@ def _print_header():
     _print_separator()
 
 
-def _print_detail(peak: Peaks, max: Dict[str, int]):
+def _print_detail(peak: Peaks, max: Dict[str, List[int]]):
     """
     Print the detail for a particular activity.
     """
@@ -84,14 +84,14 @@ def _print_detail(peak: Peaks, max: Dict[str, int]):
     p120min = str(peak.peak_120min_power).rjust(4) if peak.peak_120min_power else "    "
 
     # Helper to decorate a peak with ANSI escape sequence highlights.
-    def _decorate(val: int, max: int, label: str) -> str:
+    def _decorate(val: int, max: List[int], label: str) -> str:
         if max is None or val is None:
             return label
         if val >= max[0]:
             label = "\033[37;41m" + label + "\033[0m"
         elif val >= max[1]:
             label = "\033[30;43m" + label + "\033[0m"
-        elif len(max)>2 and val >= max[2]:
+        elif len(max) > 2 and val >= max[2]:
             label = "\033[30;47m" + label + "\033[0m"
         return label
 
@@ -113,7 +113,7 @@ def _print_detail(peak: Peaks, max: Dict[str, int]):
     )
 
 
-def _print_summary(max: Dict[str, int]):
+def _print_summary(max: Dict[str, List[int]]):
     """
     Print a summary of our highest ever peaks.
     
@@ -153,7 +153,9 @@ def _print_summary(max: Dict[str, int]):
     p30min_2 = (str(max["30min"][2]) if "30min" in max else "").rjust(4)
     p60min_2 = (str(max["60min"][2]) if "60min" in max else "").rjust(4)
     p90min_2 = (str(max["90min"][2]) if "90min" in max else "").rjust(4)
-    p120min_2 = (str(max["120min"][2]) if "120min" in max and len(max["120min"])>2 else "").rjust(4)
+    p120min_2 = (
+        str(max["120min"][2]) if "120min" in max and len(max["120min"]) > 2 else ""
+    ).rjust(4)
 
     # Print the result.
     print()
@@ -193,7 +195,7 @@ def _print_separator():
     )
 
 
-def _load_max_values(peak_data: List[Peaks]) -> Dict[str, int]:
+def _load_max_values(peak_data: List[Peaks]) -> Dict[str, List[int]]:
     """
     Given a list of peaks, find the overall maximum for each of those peaks.
     

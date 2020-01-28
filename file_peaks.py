@@ -61,6 +61,7 @@ def get_file_peaks(*, path: str) -> Peaks:
     peaks = Peaks()
     peaks.start_time = start_time
     peaks.end_time = end_time
+    peaks.activity_name = None
     _load_peaks(source=power, attributes=POWER_AVERAGES, peaks=peaks)
     _load_peaks(source=hr, attributes=HR_AVERAGES, peaks=peaks)
 
