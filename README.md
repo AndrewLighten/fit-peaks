@@ -22,23 +22,31 @@ In essence, it does the following:
 Here's an example:
 
 ```
-Date               Start   Duration     5s    30s    60s     5m    10m    20m    30m    60m    90m   120m
-────────────────   ─────   ────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────
-Mon 13 Jan, 2020   17:00    1:48:48    450    411    368    310    284    274    270    264    245       
-Tue 14 Jan, 2020   09:00    1:18:02    373    342    340    305    289    280    266    263              
-Wed 15 Jan, 2020   18:00    1:08:06    464    442    400    372    328    302    305    274              
-Thu 16 Jan, 2020   18:05    1:19:57    484    452    446    349    324    316    309    294              
-Fri 17 Jan, 2020   17:00    1:19:12    423    416    411    346    328    322    318    310              
-Sat 18 Jan, 2020   12:06    0:54:14    502    412    352    342    338    324    318                     
-Sun 19 Jan, 2020   19:05    0:41:58    416    397    395    382    348    310    286                     
-Sun 19 Jan, 2020   20:12    0:21:59    355    338    332    326    212    106                            
-────────────────   ─────   ────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────
+Date               Activity                                                                           Start   Duration     5s    30s    60s     5m    10m    20m    30m    60m    90m   120m
+────────────────   ────────────────────────────────────────────────────────────────────────────────   ─────   ────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────
+Mon 20 Jan, 2020   Steady State 90min  - Group Training Ride 2.9 - 3.5w (B)                           16:10    1:32:30    340    318    302    284    276    272    269    267    262
+Tue 21 Jan, 2020   Tour de Zwift: Stage 3 Group Ride - Long Distance                                  12:00    1:21:00    438    389    359    327    322    313    309    299
+Wed 22 Jan, 2020   SAS - Out and Back (C)                                                             18:00    1:08:21    584    556    439    351    338    298    288    275
+Wed 22 Jan, 2020   SAS - Start 1.5 Ride (D)                                                           19:15    0:22:25    330    289    248    202    173    151
+Thu 23 Jan, 2020   3R Watopia Flat Route Race - 3 Laps (30.3km/18.8mi 162m) (C)                       17:10    0:49:47    713    572    422    326    310    300    298
+Thu 23 Jan, 2020   SZR Sunrise Ride (C)                                                               18:05    0:10:04    297    280    273    217    198
+Fri 24 Jan, 2020   Ride with Geraint Thomas and Eric Min                                              06:30    0:33:11    291    282    278    264    263    257    248
+Sat 25 Jan, 2020   Tour de Zwift: Stage 4 Group Ride - Long Distance                                  09:00    0:52:53    446    366    349    336    333    316    311
+Sun 26 Jan, 2020   SAS - ULTRA 200km (B)                                                              16:00    1:57:21    346    319    310    277    271    266    265    209    193
+────────────────   ────────────────────────────────────────────────────────────────────────────────   ─────   ────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────
 
-                                        5s    30s    60s     5m    10m    20m    30m    60m    90m   120m
-───────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────
-Peak values                            761    593    456    382    356    353    330    323    278    239
-───────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────
-andrew@i9 ~/D/fit-peaks (master)> 
+Date               Activity                                                                           Start   Duration     5s    30s    60s     5m    10m    20m    30m    60m    90m   120m
+────────────────   ────────────────────────────────────────────────────────────────────────────────   ─────   ────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────
+Mon 27 Jan, 2020   3R VOLT Interval Ride (C)                                                          17:05    1:16:52    520    427    398    357    341    296    289    272
+Tue 28 Jan, 2020   3R Watopia Flat Route Reverse Race - 3 Laps (30.8km/19.1mi 162m) (B)               08:15    1:06:04    569    521    399    343    337    325    321    301
+────────────────   ────────────────────────────────────────────────────────────────────────────────   ─────   ────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────
+
+                                                                                                                           5s    30s    60s     5m    10m    20m    30m    60m    90m   120m
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────
+Peak values                                                                                                      First    761    593    456    382    356    353    330    323    278    239
+                                                                                                                Second    756    577    446    372    348    334    325    321    275    239
+                                                                                                                 Third    713    572    445    362    342    333    325    317    274
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────
 ```
 
 Although this example doesn't show it, the maximum figure for each peak is highlighted when the report is displayed.
@@ -69,12 +77,26 @@ To generate the power report:
 
     andrew@i9 ~/D/fit-peaks (master)> python fit-peaks.py power
 
+# Config file with Zwift credentials
+
+The `zwift` command will use the Zwift API to go and fetch activity names. To do this, you need to create a config file that contains your Zwift username, password, and player ID.
+
+Create it in your home directory — it should be available as `~/.fit-peaks.rc`. It should look like this:
+
+    [zwift]
+    username = <my-username>
+    password = <my-password>
+    player-id = <my-player-id>
+    
+See https://zwiftinsider.com/find-your-zwift-user-id/ for details on how to find your Zwift player ID.
+
 # Dependencies
 
-Basically, click (for the command line) and fitparse (for parsing the `.fit` files Zwift produces).
+Basically:
 
-- https://github.com/pallets/click
-- https://github.com/dtcooper/python-fitparse
+- *click* for the command line (https://github.com/pallets/click)
+- *fitparse* for parsing the `.fit` files Zwift produces (https://github.com/dtcooper/python-fitparse)
+- *zwift client* for accessing the Zwift API (https://github.com/jsmits/zwift-client)
 
 Haven't specified a setup file with these dependencies in it. Probably should. Probably won't.
 

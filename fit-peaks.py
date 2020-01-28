@@ -1,6 +1,6 @@
 import click
 
-from zwift import load_from_zwift
+from zwift_loader import load_from_zwift
 from power import power_report
 from hr import hr_report
 

@@ -96,6 +96,8 @@ INSERT_SQL = """
         peak_120min_hr      = :peak_120min_hr
 """
 
+UPDATE_NAME_SQL = "update peaks set activity_name = :activity_name where :start_time <= start_time and :end_time > start_time"
+
 
 class Persistence:
     """
@@ -244,4 +246,18 @@ class Persistence:
 
         # Insert the record.
         self.conn.execute(INSERT_SQL, params)
+        self.conn.commit()
+
+    def name_activity(
+        self, *, start_time: datetime, end_time: datetime, activity_name: str
+    ):
+
+        self.conn.execute(
+            UPDATE_NAME_SQL,
+            {
+                "activity_name": activity_name,
+                "start_time": start_time,
+                "end_time": end_time,
+            },
+        )
         self.conn.commit()
