@@ -1,12 +1,13 @@
 import sqlite3
 import os.path
+from pathlib import Path
 from datetime import datetime
 from dateutil import tz
 from typing import Optional, List
 
 from peaks import Peaks
 
-DATABASE_NAME = "peaks.dat"
+DATABASE_NAME = str(Path.home()) + "/.fit-peaks.dat"
 
 CREATE_TABLE = """
             create table peaks

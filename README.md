@@ -92,6 +92,33 @@ See https://zwiftinsider.com/find-your-zwift-user-id/ for details on how to find
 
 # Dependencies
 
+As specified in the `setup.py` file.
+
+To install locally:
+
+```
+andrew@i9 ~/D/fit-peaks (master)> pip3.8 install --editable .
+Obtaining file:///Users/andrew/Developer/fit-peaks
+Requirement already satisfied: Click>=7.0 in /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages (from fit-peaks==1.0) (7.0)
+Requirement already satisfied: termcolor>=1.1.0 in /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages (from fit-peaks==1.0) (1.1.0)
+Requirement already satisfied: fitparse>=1.1.0 in /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages (from fit-peaks==1.0) (1.1.0)
+Requirement already satisfied: zwift-client>=0.2.0 in /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages (from fit-peaks==1.0) (0.2.0)
+Requirement already satisfied: requests in /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages (from zwift-client>=0.2.0->fit-peaks==1.0) (2.22.0)
+Requirement already satisfied: protobuf in /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages (from zwift-client>=0.2.0->fit-peaks==1.0) (3.11.2)
+Requirement already satisfied: certifi>=2017.4.17 in /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages (from requests->zwift-client>=0.2.0->fit-peaks==1.0) (2019.9.11)
+Requirement already satisfied: urllib3!=1.25.0,!=1.25.1,<1.26,>=1.21.1 in /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages (from requests->zwift-client>=0.2.0->fit-peaks==1.0) (1.25.6)
+Requirement already satisfied: idna<2.9,>=2.5 in /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages (from requests->zwift-client>=0.2.0->fit-peaks==1.0) (2.8)
+Requirement already satisfied: chardet<3.1.0,>=3.0.2 in /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages (from requests->zwift-client>=0.2.0->fit-peaks==1.0) (3.0.4)
+Requirement already satisfied: six>=1.9 in /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages (from protobuf->zwift-client>=0.2.0->fit-peaks==1.0) (1.13.0)
+Requirement already satisfied: setuptools in /Users/andrew/Library/Python/3.8/lib/python/site-packages (from protobuf->zwift-client>=0.2.0->fit-peaks==1.0) (42.0.1)
+Installing collected packages: fit-peaks
+  Running setup.py develop for fit-peaks
+Successfully installed fit-peaks
+WARNING: You are using pip version 19.3.1; however, version 20.0.2 is available.
+You should consider upgrading via the 'pip install --upgrade pip' command.
+andrew@i9 ~/D/fit-peaks (master)>
+```
+
 Basically:
 
 - *click* for the command line (https://github.com/pallets/click)

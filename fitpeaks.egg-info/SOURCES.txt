@@ -1,0 +1,10 @@
+README.md
+fitpeaks.py
+setup.cfg
+setup.py
+fitpeaks.egg-info/PKG-INFO
+fitpeaks.egg-info/SOURCES.txt
+fitpeaks.egg-info/dependency_links.txt
+fitpeaks.egg-info/entry_points.txt
+fitpeaks.egg-info/requires.txt
+fitpeaks.egg-info/top_level.txt

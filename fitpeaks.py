@@ -12,7 +12,7 @@ def cli():
 
 
 # Add in a "zwift" command.
-@click.command("zwift", short_help="Load latest files from Zwift")
+@click.command("zwift", short_help="Load Zwift data")
 def zwift():
     load_from_zwift()
 
@@ -29,9 +29,12 @@ def do_hr_report():
     hr_report()
 
 
-# Run the CLI.
-if __name__ == "__main__":
+def main():
     cli.add_command(zwift)
     cli.add_command(do_power_report)
     cli.add_command(do_hr_report)
     cli()
+
+# Run the CLI.
+if __name__ == "__main__":
+    main()
