@@ -85,8 +85,14 @@ def _print_detail(peak: Peaks, max: Dict[str, int]):
 
     # Helper to decorate a peak with ANSI escape sequence highlights.
     def _decorate(val: int, max: int, label: str) -> str:
-        if val and val >= max:
+        if max is None or val is None:
+            return label
+        if val >= max[0]:
             label = "\033[37;41m" + label + "\033[0m"
+        elif val >= max[1]:
+            label = "\033[30;43m" + label + "\033[0m"
+        elif len(max)>2 and val >= max[2]:
+            label = "\033[30;47m" + label + "\033[0m"
         return label
 
     # Highlight those peaks in this activity that are the highest peak we've ever seen.
@@ -116,16 +122,38 @@ def _print_summary(max: Dict[str, int]):
     """
 
     # Format each value.
-    p5sec = (str(max["5sec"]) if "5sec" in max else "").rjust(4)
-    p30sec = (str(max["30sec"]) if "30sec" in max else "").rjust(4)
-    p60sec = (str(max["60sec"]) if "60sec" in max else "").rjust(4)
-    p5min = (str(max["5min"]) if "5min" in max else "").rjust(4)
-    p10min = (str(max["10min"]) if "10min" in max else "").rjust(4)
-    p20min = (str(max["20min"]) if "20min" in max else "").rjust(4)
-    p30min = (str(max["30min"]) if "30min" in max else "").rjust(4)
-    p60min = (str(max["60min"]) if "60min" in max else "").rjust(4)
-    p90min = (str(max["90min"]) if "90min" in max else "").rjust(4)
-    p120min = (str(max["120min"]) if "120min" in max else "").rjust(4)
+    p5sec_0 = (str(max["5sec"][0]) if "5sec" in max else "").rjust(4)
+    p30sec_0 = (str(max["30sec"][0]) if "30sec" in max else "").rjust(4)
+    p60sec_0 = (str(max["60sec"][0]) if "60sec" in max else "").rjust(4)
+    p5min_0 = (str(max["5min"][0]) if "5min" in max else "").rjust(4)
+    p10min_0 = (str(max["10min"][0]) if "10min" in max else "").rjust(4)
+    p20min_0 = (str(max["20min"][0]) if "20min" in max else "").rjust(4)
+    p30min_0 = (str(max["30min"][0]) if "30min" in max else "").rjust(4)
+    p60min_0 = (str(max["60min"][0]) if "60min" in max else "").rjust(4)
+    p90min_0 = (str(max["90min"][0]) if "90min" in max else "").rjust(4)
+    p120min_0 = (str(max["120min"][0]) if "120min" in max else "").rjust(4)
+
+    p5sec_1 = (str(max["5sec"][1]) if "5sec" in max else "").rjust(4)
+    p30sec_1 = (str(max["30sec"][1]) if "30sec" in max else "").rjust(4)
+    p60sec_1 = (str(max["60sec"][1]) if "60sec" in max else "").rjust(4)
+    p5min_1 = (str(max["5min"][1]) if "5min" in max else "").rjust(4)
+    p10min_1 = (str(max["10min"][1]) if "10min" in max else "").rjust(4)
+    p20min_1 = (str(max["20min"][1]) if "20min" in max else "").rjust(4)
+    p30min_1 = (str(max["30min"][1]) if "30min" in max else "").rjust(4)
+    p60min_1 = (str(max["60min"][1]) if "60min" in max else "").rjust(4)
+    p90min_1 = (str(max["90min"][1]) if "90min" in max else "").rjust(4)
+    p120min_1 = (str(max["120min"][1]) if "120min" in max else "").rjust(4)
+
+    p5sec_2 = (str(max["5sec"][2]) if "5sec" in max else "").rjust(4)
+    p30sec_2 = (str(max["30sec"][2]) if "30sec" in max else "").rjust(4)
+    p60sec_2 = (str(max["60sec"][2]) if "60sec" in max else "").rjust(4)
+    p5min_2 = (str(max["5min"][2]) if "5min" in max else "").rjust(4)
+    p10min_2 = (str(max["10min"][2]) if "10min" in max else "").rjust(4)
+    p20min_2 = (str(max["20min"][2]) if "20min" in max else "").rjust(4)
+    p30min_2 = (str(max["30min"][2]) if "30min" in max else "").rjust(4)
+    p60min_2 = (str(max["60min"][2]) if "60min" in max else "").rjust(4)
+    p90min_2 = (str(max["90min"][2]) if "90min" in max else "").rjust(4)
+    p120min_2 = (str(max["120min"][2]) if "120min" in max and len(max["120min"])>2 else "").rjust(4)
 
     # Print the result.
     print()
@@ -136,7 +164,13 @@ def _print_summary(max: Dict[str, int]):
         "───────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────"
     )
     print(
-        f"Peak values                           {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}"
+        f"Peak values                   \033[37;41mFirst\033[0m   {p5sec_0}   {p30sec_0}   {p60sec_0}   {p5min_0}   {p10min_0}   {p20min_0}   {p30min_0}   {p60min_0}   {p90min_0}   {p120min_0}"
+    )
+    print(
+        f"                             \033[30;43mSecond\033[0m   {p5sec_1}   {p30sec_1}   {p60sec_1}   {p5min_1}   {p10min_1}   {p20min_1}   {p30min_1}   {p60min_1}   {p90min_1}   {p120min_1}"
+    )
+    print(
+        f"                              \033[30;47mThird\033[0m   {p5sec_2}   {p30sec_2}   {p60sec_2}   {p5min_2}   {p10min_2}   {p20min_2}   {p30min_2}   {p60min_2}   {p90min_2}   {p120min_2}"
     )
     print(
         "───────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────"
@@ -171,12 +205,18 @@ def _load_max_values(peak_data: List[Peaks]) -> Dict[str, int]:
     """
 
     # Initialise.
-    max: Dict[str, int] = defaultdict(int)
+    max: Dict[str, List[int]] = {}
 
     # Helper to find maximum.
     def _max(val: int, label: str):
-        if val and val > max[label]:
-            max[label] = val
+        if val is None:
+            return
+        if label in max:
+            l = max[label]
+        else:
+            l = []
+            max[label] = l
+        l.append(val)
 
     # Visit each time period to find the maximum value.
     for peak in peak_data:
@@ -190,6 +230,10 @@ def _load_max_values(peak_data: List[Peaks]) -> Dict[str, int]:
         _max(peak.peak_60min_power, "60min")
         _max(peak.peak_90min_power, "90min")
         _max(peak.peak_120min_power, "120min")
+
+    # Now sort each list
+    for key in max:
+        max[key].sort(reverse=True)
 
     # Done.
     return max
