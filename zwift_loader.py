@@ -4,6 +4,8 @@ from typing import Tuple
 from pathlib import Path
 from datetime import datetime
 from dateutil import parser
+import traceback
+import sys
 
 import fitparse.utils
 from persistence import Persistence
@@ -60,6 +62,7 @@ def _load_activity_files():
 
         # This is a busted file.
         except fitparse.utils.FitParseError:
+            #print(traceback.format_exc())
             pass
 
     # Done.

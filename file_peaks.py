@@ -55,13 +55,14 @@ def get_file_peaks(*, path: str) -> Peaks:
     fitfile = FitFile(path)
 
     # Load the power and heart rate data.
-    start_time, end_time, power, hr = _load_file_data(fitfile=fitfile)
+    start_time, end_time, power, hr, distance = _load_file_data(fitfile=fitfile)
 
     # Setup the peaks object
     peaks = Peaks()
     peaks.start_time = start_time
     peaks.end_time = end_time
     peaks.activity_name = None
+    peaks.distance = distance
     _load_peaks(source=power, attributes=POWER_AVERAGES, peaks=peaks)
     _load_peaks(source=hr, attributes=HR_AVERAGES, peaks=peaks)
 
@@ -97,7 +98,7 @@ def _load_peaks(source: List[int], attributes: Dict[int, str], peaks: Peaks):
 
 def _load_file_data(
     *, fitfile: FitFile
-) -> Tuple[datetime, datetime, List[int], List[int]]:
+) -> Tuple[datetime, datetime, List[int], List[int], float]:
     """
     Load the data from the nominated file.
     
@@ -105,8 +106,8 @@ def _load_file_data(
         fitfile: The file to load the data from.
     
     Returns:
-        Tuple[datetime, datetime, List[int], List[int]]:
-            The start time, end time, power figures, and HR figures.
+        Tuple[datetime, datetime, List[int], List[int], float]:
+            The start time, end time, power figures, HR figures, and distance travelled.
     """
 
     # Initialise.
@@ -114,6 +115,7 @@ def _load_file_data(
     end_time = None
     power = []
     hr = []
+    distance = 0.0
 
     # Iterate over the file.
     for record in fitfile.get_messages("record"):
@@ -137,8 +139,12 @@ def _load_file_data(
             if record_data.name == "heart_rate":
                 hr.append(int(record_data.value))
 
+            # Fetch distance.
+            if record_data.name == "distance" and record_data.value:
+                distance = float(record_data.value)
+
     # Done.
-    return start_time, end_time, power, hr
+    return start_time, end_time, power, hr, distance
 
 
 def _get_moving_average(*, source: List[int], window: int) -> List[int]:
