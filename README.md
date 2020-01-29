@@ -23,7 +23,9 @@ Note that the activity name is *not* available in the `.fit` files. Instead, it'
 
 All of the loaded data is stored in an SQLite database in your home directory (`~/.fit-peaks.dat`).
 
-Here's an example:
+## Sample report
+
+Here's an example of the power report:
 
 ```
 Date               Activity                                                                           Distance   Start   Duration     5s    30s    60s     5m    10m    20m    30m    60m    90m   120m
