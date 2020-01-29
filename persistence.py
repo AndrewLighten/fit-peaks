@@ -215,7 +215,6 @@ class Persistence:
         #   yyyy-mm-dd hh:mm:ss         — UTC
         #   yyyy-mm-dd hh:mm:ss+hh:mm   - Local time
         # UTC times we correct to local times; local times we use verbatim.
-        print(f"Start time is {SelectIndices.StartTime.value}")
         raw_start_time = record[SelectIndices.StartTime.value]
         if "+" in raw_start_time:
             time_parts = raw_start_time.split("+")
@@ -245,12 +244,12 @@ class Persistence:
         peaks.peak_30sec_power = record[SelectIndices.Peak30SecPower.value]
         peaks.peak_60sec_power = record[SelectIndices.Peak60SecPower.value]
         peaks.peak_5min_power = record[SelectIndices.Peak5MinPower.value]
-        peaks.peak_10min_power = record[SelectIndices.Peak5MinPower.value]
-        peaks.peak_20min_power = record[SelectIndices.Peak5MinPower.value]
-        peaks.peak_30min_power = record[SelectIndices.Peak5MinPower.value]
-        peaks.peak_60min_power = record[SelectIndices.Peak5MinPower.value]
-        peaks.peak_90min_power = record[SelectIndices.Peak5MinPower.value]
-        peaks.peak_120min_power = record[SelectIndices.Peak5MinPower.value]
+        peaks.peak_10min_power = record[SelectIndices.Peak10MinPower.value]
+        peaks.peak_20min_power = record[SelectIndices.Peak20MinPower.value]
+        peaks.peak_30min_power = record[SelectIndices.Peak30MinPower.value]
+        peaks.peak_60min_power = record[SelectIndices.Peak60MinPower.value]
+        peaks.peak_90min_power = record[SelectIndices.Peak90MinPower.value]
+        peaks.peak_120min_power = record[SelectIndices.Peak120MinPower.value]
 
         # Fetch HR data.
         peaks.peak_5sec_hr = record[SelectIndices.Peak5SecHr.value]
