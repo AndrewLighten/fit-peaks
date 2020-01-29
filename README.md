@@ -119,14 +119,6 @@ You should consider upgrading via the 'pip install --upgrade pip' command.
 andrew@i9 ~/D/fit-peaks (master)>
 ```
 
-Basically:
-
-- *click* for the command line (https://github.com/pallets/click)
-- *fitparse* for parsing the `.fit` files Zwift produces (https://github.com/dtcooper/python-fitparse)
-- *zwift client* for accessing the Zwift API (https://github.com/jsmits/zwift-client)
-
-Haven't specified a setup file with these dependencies in it. Probably should. Probably won't.
-
 # License stuff
 
 Go at it. Do what you want.
