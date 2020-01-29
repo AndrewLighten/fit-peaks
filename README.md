@@ -94,7 +94,9 @@ Create it in your home directory — it should be available as `~/.fit-peaks.rc`
     password = <my-password>
     player-id = <my-player-id>
     
-See https://zwiftinsider.com/find-your-zwift-user-id/ for details on how to find your Zwift player ID.
+See https://zwiftinsider.com/find-your-zwift-user-id/ for full details on how to find your Zwift player ID. If you can't be bothered reading that, and you're on a Mac, bung this into your terminal:
+
+    grep -i 'player id' ~/Documents/Zwift/Logs/log.txt
 
 # Dependencies
 
