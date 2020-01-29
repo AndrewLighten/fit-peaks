@@ -27,5 +27,10 @@ setup(
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: POSIX :: Linux",
     ],
-    install_requires=["Click>=7.0", "termcolor>=1.1.0", "fitparse>=1.1.0", "zwift-client>=0.2.0"],
+    install_requires=[
+        "Click>=7.0",
+        "termcolor>=1.1.0",
+        "fitparse>=1.1.0",
+        "zwift-client>=0.2.0",
+    ],
 )

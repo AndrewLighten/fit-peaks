@@ -1,9 +1,10 @@
 import sqlite3
 import os.path
+from enum import Enum, auto
 from pathlib import Path
 from datetime import datetime
 from dateutil import tz
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 from peaks import Peaks
 
@@ -16,6 +17,7 @@ CREATE_TABLE = """
                 start_time          timestamp,
                 end_time            timestamp,
                 distance            real,
+                elevation           int             null,
                 activity_name       varchar         null,
                 peak_5sec_power     int             null,
                 peak_30sec_power    int             null,
@@ -42,7 +44,7 @@ CREATE_TABLE = """
 
 SELECT = """
     select
-        filename, start_time, end_time, distance, activity_name,
+        filename, start_time, end_time, distance, elevation, activity_name,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
         peak_5sec_hr,     peak_30sec_hr,    peak_60sec_hr,    peak_5min_hr,     peak_10min_hr,
@@ -52,12 +54,42 @@ SELECT = """
 
 SELECT_FILE = SELECT + " where filename = :filename"
 
+
+class SelectIndices(Enum):
+    Filename = 0
+    StartTime = auto()
+    EndTime = auto()
+    Distance = auto()
+    Elevation = auto()
+    ActivityName = auto()
+    Peak5SecPower = auto()
+    Peak30SecPower = auto()
+    Peak60SecPower = auto()
+    Peak5MinPower = auto()
+    Peak10MinPower = auto()
+    Peak20MinPower = auto()
+    Peak30MinPower = auto()
+    Peak60MinPower = auto()
+    Peak90MinPower = auto()
+    Peak120MinPower = auto()
+    Peak5SecHr = auto()
+    Peak30SecHr = auto()
+    Peak60SecHr = auto()
+    Peak5MinHr = auto()
+    Peak10MinHr = auto()
+    Peak20MinHr = auto()
+    Peak30MinHr = auto()
+    Peak60MinHr = auto()
+    Peak90MinHr = auto()
+    Peak120MinHr = auto()
+
+
 SELECT_ALL = SELECT + " where peak_10min_power is not null order by start_time"
 
 INSERT_SQL = """
     insert into peaks 
     (
-        filename, start_time, end_time, distance, activity_name,
+        filename, start_time, end_time, distance, elevation, activity_name,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
         peak_5sec_hr,     peak_30sec_hr,    peak_60sec_hr,    peak_5min_hr,     peak_10min_hr,
@@ -65,7 +97,7 @@ INSERT_SQL = """
     )
     values 
     (
-        :filename, :start_time, :end_time, :distance, :activity_name,
+        :filename, :start_time, :end_time, :distance, :elevation, :activity_name,
         :peak_5sec_power,  :peak_30sec_power, :peak_60sec_power, :peak_5min_power,  :peak_10min_power,
         :peak_20min_power, :peak_30min_power, :peak_60min_power, :peak_90min_power, :peak_120min_power, 
         :peak_5sec_hr,     :peak_30sec_hr,    :peak_60sec_hr,    :peak_5min_hr,     :peak_10min_hr,
@@ -76,6 +108,7 @@ INSERT_SQL = """
     set start_time          = :start_time,
         end_time            = :end_time,
         distance            = :distance,
+        elevation           = :elevation,
         activity_name       = :activity_name,
         peak_5sec_power     = :peak_5sec_power,  
         peak_30sec_power    = :peak_30sec_power,
@@ -99,7 +132,7 @@ INSERT_SQL = """
         peak_120min_hr      = :peak_120min_hr
 """
 
-UPDATE_NAME_SQL = "update peaks set activity_name = :activity_name where :start_time <= start_time and :end_time > start_time"
+UPDATE_ZWIFT_SQL = "update peaks set activity_name = :activity_name, elevation = :elevation where :start_time <= start_time and :end_time > start_time"
 
 
 class Persistence:
@@ -160,7 +193,7 @@ class Persistence:
         finally:
             cursor.close()
 
-    def _create_peaks(self, *, record: tuple) -> Peaks:
+    def _create_peaks(self, *, record: Tuple) -> Peaks:
         """
         Create a `Peaks` object given a database record.
         
@@ -182,7 +215,8 @@ class Persistence:
         #   yyyy-mm-dd hh:mm:ss         — UTC
         #   yyyy-mm-dd hh:mm:ss+hh:mm   - Local time
         # UTC times we correct to local times; local times we use verbatim.
-        raw_start_time = record[1]
+        print(f"Start time is {SelectIndices.StartTime.value}")
+        raw_start_time = record[SelectIndices.StartTime.value]
         if "+" in raw_start_time:
             time_parts = raw_start_time.split("+")
             peaks.start_time = datetime.strptime(time_parts[0], "%Y-%m-%d %H:%M:%S")
@@ -192,7 +226,7 @@ class Persistence:
             peaks.start_time = utc.astimezone(dst_tz)
 
         # Fetch the end time. Same deal as the start time with TZ data...
-        raw_end_time = record[2]
+        raw_end_time = record[SelectIndices.EndTime.value]
         if "+" in raw_end_time:
             time_parts = raw_end_time.split("+")
             peaks.end_time = datetime.strptime(time_parts[0], "%Y-%m-%d %H:%M:%S")
@@ -202,32 +236,33 @@ class Persistence:
             peaks.end_time = utc.astimezone(dst_tz)
 
         # Fetch activity name and distance
-        peaks.distance = record[3]
-        peaks.activity_name = record[4]
+        peaks.distance = record[SelectIndices.Distance.value]
+        peaks.elevation = record[SelectIndices.Elevation.value]
+        peaks.activity_name = record[SelectIndices.ActivityName.value]
 
         # Fetch power data.
-        peaks.peak_5sec_power = record[5]
-        peaks.peak_30sec_power = record[6]
-        peaks.peak_60sec_power = record[7]
-        peaks.peak_5min_power = record[8]
-        peaks.peak_10min_power = record[9]
-        peaks.peak_20min_power = record[10]
-        peaks.peak_30min_power = record[11]
-        peaks.peak_60min_power = record[12]
-        peaks.peak_90min_power = record[13]
-        peaks.peak_120min_power = record[14]
+        peaks.peak_5sec_power = record[SelectIndices.Peak5SecPower.value]
+        peaks.peak_30sec_power = record[SelectIndices.Peak30SecPower.value]
+        peaks.peak_60sec_power = record[SelectIndices.Peak60SecPower.value]
+        peaks.peak_5min_power = record[SelectIndices.Peak5MinPower.value]
+        peaks.peak_10min_power = record[SelectIndices.Peak5MinPower.value]
+        peaks.peak_20min_power = record[SelectIndices.Peak5MinPower.value]
+        peaks.peak_30min_power = record[SelectIndices.Peak5MinPower.value]
+        peaks.peak_60min_power = record[SelectIndices.Peak5MinPower.value]
+        peaks.peak_90min_power = record[SelectIndices.Peak5MinPower.value]
+        peaks.peak_120min_power = record[SelectIndices.Peak5MinPower.value]
 
         # Fetch HR data.
-        peaks.peak_5sec_hr = record[15]
-        peaks.peak_30sec_hr = record[16]
-        peaks.peak_60sec_hr = record[17]
-        peaks.peak_5min_hr = record[18]
-        peaks.peak_10min_hr = record[19]
-        peaks.peak_20min_hr = record[20]
-        peaks.peak_30min_hr = record[21]
-        peaks.peak_60min_hr = record[22]
-        peaks.peak_90min_hr = record[23]
-        peaks.peak_120min_hr = record[24]
+        peaks.peak_5sec_hr = record[SelectIndices.Peak5SecHr.value]
+        peaks.peak_30sec_hr = record[SelectIndices.Peak30SecHr.value]
+        peaks.peak_60sec_hr = record[SelectIndices.Peak60SecHr.value]
+        peaks.peak_5min_hr = record[SelectIndices.Peak5MinHr.value]
+        peaks.peak_10min_hr = record[SelectIndices.Peak10MinHr.value]
+        peaks.peak_20min_hr = record[SelectIndices.Peak20MinHr.value]
+        peaks.peak_30min_hr = record[SelectIndices.Peak30MinHr.value]
+        peaks.peak_60min_hr = record[SelectIndices.Peak60MinHr.value]
+        peaks.peak_90min_hr = record[SelectIndices.Peak90MinHr.value]
+        peaks.peak_120min_hr = record[SelectIndices.Peak120MinHr.value]
 
         # Done.
         return peaks
@@ -252,16 +287,22 @@ class Persistence:
         self.conn.execute(INSERT_SQL, params)
         self.conn.commit()
 
-    def name_activity(
-        self, *, start_time: datetime, end_time: datetime, activity_name: str
+    def update_with_zwift_data(
+        self,
+        *,
+        start_time: datetime,
+        end_time: datetime,
+        elevation: int,
+        activity_name: str,
     ):
 
         self.conn.execute(
-            UPDATE_NAME_SQL,
+            UPDATE_ZWIFT_SQL,
             {
-                "activity_name": activity_name,
                 "start_time": start_time,
                 "end_time": end_time,
+                "elevation": elevation,
+                "activity_name": activity_name,
             },
         )
         self.conn.commit()

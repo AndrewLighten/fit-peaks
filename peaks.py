@@ -8,8 +8,9 @@ class Peaks:
     end_time: datetime = None
 
     # Activity name and distance travelled.
-    activity_name: str = None
     distance: float = None
+    elevation: int = None
+    activity_name: str = None
 
     # Power data.
     peak_5sec_power: int = None

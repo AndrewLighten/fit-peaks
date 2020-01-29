@@ -35,6 +35,7 @@ def main():
     cli.add_command(do_hr_report)
     cli()
 
+
 # Run the CLI.
 if __name__ == "__main__":
     main()

@@ -23,7 +23,7 @@ def load_from_zwift():
     Load the latest data from Zwift.
     """
     _load_activity_files()
-    _load_activity_names()
+    _load_extra_zwift_data()
 
 
 def _load_activity_files():
@@ -62,16 +62,16 @@ def _load_activity_files():
 
         # This is a busted file.
         except fitparse.utils.FitParseError:
-            #print(traceback.format_exc())
+            # print(traceback.format_exc())
             pass
 
     # Done.
     print(f"Loaded {loaded} file(s)")
 
 
-def _load_activity_names():
+def _load_extra_zwift_data():
     """
-    Load the Zwift activity names.
+    Load extra data from Zwift using its API.
     """
 
     # Fetch the Zwift credentials
@@ -114,9 +114,16 @@ def _load_activity_names():
             activity_name = activity["name"]
             if activity_name.startswith("Zwift - "):
                 activity_name = activity_name[8:]
+
+            # Fetch the elevation
+            elevation = int(activity["totalElevation"])
+
             # Store the activity name
-            db.name_activity(
-                start_time=start_time, end_time=end_time, activity_name=activity_name
+            db.update_with_zwift_data(
+                start_time=start_time,
+                end_time=end_time,
+                elevation=elevation,
+                activity_name=activity_name,
             )
 
         # Move on
