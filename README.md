@@ -62,8 +62,8 @@ Although this example doesn't show it, the top three values for each peak are hi
 Run from the command line, and specify one of three commands:
 
 ```
-andrew@i9 ~/D/fit-peaks (master)> python fit-peaks.py
-Usage: fit-peaks.py [OPTIONS] COMMAND [ARGS]...
+andrew@i9 ~ (master)> fitpeaks
+Usage: fitpeaks [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
@@ -71,8 +71,8 @@ Options:
 Commands:
   hr     Report on peak heart rate
   power  Report on peak power
-  zwift  Load latest files from Zwift
-andrew@i9 ~/D/fit-peaks (master)> 
+  zwift  Load Zwift data
+andrew@i9 ~ (master)>
 ```
 
 Pretty self explanatory. To load Zwift data, for example:
