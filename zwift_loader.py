@@ -2,7 +2,7 @@ import os
 import configparser
 from typing import Tuple
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil import parser
 import traceback
 import sys
@@ -107,7 +107,7 @@ def _load_extra_zwift_data():
                 continue
 
             # Fetch the start date, end date, and activity name
-            start_time = parser.parse(activity["startDate"])
+            start_time = parser.parse(activity["startDate"]) - timedelta(minutes=5)
             end_time = parser.parse(activity["endDate"])
 
             # Fetch the activity name

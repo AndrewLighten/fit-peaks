@@ -73,7 +73,7 @@ def _print_detail(peak: Peaks, max: Dict[str, List[int]]):
 
     # Find the activity name
     distance = (format(round(peak.distance / 1000, 2), ".2f") + "km").rjust(8)
-    elevation = (str(peak.elevation)+"m").rjust(6) if peak.elevation else "".rjust(6)
+    elevation = (str(peak.elevation) + "m").rjust(6) if peak.elevation else "".rjust(6)
     activity_name = peak.activity_name.ljust(80) if peak.activity_name else "".ljust(80)
 
     # Find each peak value.
