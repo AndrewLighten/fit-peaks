@@ -3,6 +3,9 @@ from datetime import datetime
 
 class Peaks:
 
+    # SQLite row ID
+    rowid: int = None
+    
     # Start and end times.
     start_time: datetime = None
     end_time: datetime = None

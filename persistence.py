@@ -43,7 +43,7 @@ CREATE_TABLE = """
             """
 
 SELECT = """
-    select
+    select rowid,
         filename, start_time, end_time, distance, elevation, activity_name,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
@@ -56,7 +56,8 @@ SELECT_FILE = SELECT + " where filename = :filename"
 
 
 class SelectIndices(Enum):
-    Filename = 0
+    RowId = 0
+    Filename = auto()
     StartTime = auto()
     EndTime = auto()
     Distance = auto()
@@ -207,6 +208,9 @@ class Persistence:
         # Create the new peaks object.
         peaks = Peaks()
 
+        # Fetch the row ID
+        peaks.rowid = record[SelectIndices.RowId.value]
+        
         # Setup timezones.
         src_tz = tz.tzutc()
         dst_tz = tz.tzlocal()

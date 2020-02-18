@@ -144,7 +144,7 @@ def _print_header():
     """
     print()
     print(
-        "Date               Activity                                                                           Distance   Elevation   Start   Duration     5s    30s    60s     5m    10m    20m    30m    60m    90m   120m"
+        "ID      Date               Activity                                                                           Distance   Elevation   Start   Duration     5s    30s    60s     5m    10m    20m    30m    60m    90m   120m"
     )
     _print_separator()
 
@@ -155,6 +155,7 @@ def _print_detail(peak: Peaks, max: Dict[str, List[int]]):
     """
 
     # Find the date, start time, and duration.
+    rowid = format(peak.rowid, "<5d")
     date = peak.start_time.strftime("%a %d %b, %Y")
     start = peak.start_time.strftime("%H:%M")
     duration = str(peak.end_time - peak.start_time).rjust(8)
@@ -202,7 +203,7 @@ def _print_detail(peak: Peaks, max: Dict[str, List[int]]):
 
     # Print the data.
     print(
-        f"{date}   {activity_name}   {distance}      {elevation}   {start}   {duration}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}"
+        f"{rowid}   {date}   {activity_name}   {distance}      {elevation}   {start}   {duration}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}"
     )
 
 
@@ -253,22 +254,22 @@ def _print_summary(max: Dict[str, List[int]]):
     # Print the result.
     print()
     print(
-        "                                                                                                                                                  5s    30s    60s     5m    10m    20m    30m    60m    90m   120m"
+        "                                                                                                                                                          5s    30s    60s     5m    10m    20m    30m    60m    90m   120m"
     )
     print(
-        "─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────"
+        "─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────"
     )
     print(
-        f"Peak values                                                                                                                             \033[37;41mFirst\033[0m   {p5sec_0}   {p30sec_0}   {p60sec_0}   {p5min_0}   {p10min_0}   {p20min_0}   {p30min_0}   {p60min_0}   {p90min_0}   {p120min_0}"
+        f"Peak values                                                                                                                                     \033[37;41mFirst\033[0m   {p5sec_0}   {p30sec_0}   {p60sec_0}   {p5min_0}   {p10min_0}   {p20min_0}   {p30min_0}   {p60min_0}   {p90min_0}   {p120min_0}"
     )
     print(
-        f"                                                                                                                                       \033[30;43mSecond\033[0m   {p5sec_1}   {p30sec_1}   {p60sec_1}   {p5min_1}   {p10min_1}   {p20min_1}   {p30min_1}   {p60min_1}   {p90min_1}   {p120min_1}"
+        f"                                                                                                                                               \033[30;43mSecond\033[0m   {p5sec_1}   {p30sec_1}   {p60sec_1}   {p5min_1}   {p10min_1}   {p20min_1}   {p30min_1}   {p60min_1}   {p90min_1}   {p120min_1}"
     )
     print(
-        f"                                                                                                                                        \033[30;47mThird\033[0m   {p5sec_2}   {p30sec_2}   {p60sec_2}   {p5min_2}   {p10min_2}   {p20min_2}   {p30min_2}   {p60min_2}   {p90min_2}   {p120min_2}"
+        f"                                                                                                                                                \033[30;47mThird\033[0m   {p5sec_2}   {p30sec_2}   {p60sec_2}   {p5min_2}   {p10min_2}   {p20min_2}   {p30min_2}   {p60min_2}   {p90min_2}   {p120min_2}"
     )
     print(
-        "─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────"
+        "─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────"
     )
 
 
@@ -327,10 +328,10 @@ def _print_footer(
     p120min = _average(week_120min_average)
 
     print(
-        f"                                                                                      Weekly totals   {distance}      {elevation}           {duration_total}"
+        f"                                                                                              Weekly totals   {distance}      {elevation}           {duration_total}"
     )
     print(
-        f"                                                                                    Weekly averages   {distance_average}      {elevation_average}           {duration_average}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}"
+        f"                                                                                            Weekly averages   {distance_average}      {elevation_average}           {duration_average}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}"
     )
     print()
 
@@ -340,7 +341,7 @@ def _print_separator():
     Print a commonly used separator.
     """
     print(
-        "────────────────   ────────────────────────────────────────────────────────────────────────────────   ────────   ─────────   ─────   ────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────"
+        "─────   ────────────────   ────────────────────────────────────────────────────────────────────────────────   ────────   ─────────   ─────   ────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────"
     )
 
 
