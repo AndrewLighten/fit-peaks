@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict
 from collections import defaultdict
 
@@ -27,6 +27,22 @@ def power_report():
     # Find the maximum for each value.
     max = _load_max_values(peak_data)
 
+    # Totals for the current week
+    week_distance_total = 0
+    week_elevation_total = 0
+    week_duration_total = timedelta()
+    week_work_days = 0
+    week_5sec_average = []
+    week_30sec_average = []
+    week_60sec_average = []
+    week_5min_average = []
+    week_10min_average = []
+    week_20min_average = []
+    week_30min_average = []
+    week_60min_average = []
+    week_90min_average = []
+    week_120min_average = []
+
     # Print the peak data for each week.
     current_weekday = None
     for peak in peak_data:
@@ -34,17 +50,89 @@ def power_report():
         # Time to break to a new week?
         if current_weekday is None or current_weekday > peak.start_time.weekday():
             if current_weekday:
-                _print_footer()
+                _print_footer(
+                    week_distance_total=week_distance_total,
+                    week_elevation_total=week_elevation_total,
+                    week_duration_total=week_duration_total,
+                    week_work_days=week_work_days,
+                    week_5sec_average=week_5sec_average,
+                    week_30sec_average=week_30sec_average,
+                    week_60sec_average=week_60sec_average,
+                    week_5min_average=week_5min_average,
+                    week_10min_average=week_10min_average,
+                    week_20min_average=week_20min_average,
+                    week_30min_average=week_30min_average,
+                    week_60min_average=week_60min_average,
+                    week_90min_average=week_90min_average,
+                    week_120min_average=week_120min_average,
+                )
+                week_distance_total = 0
+                week_elevation_total = 0
+                week_duration_total = timedelta(0)
+                week_work_days = 0
+                week_5sec_average = []
+                week_30sec_average = []
+                week_60sec_average = []
+                week_5min_average = []
+                week_10min_average = []
+                week_20min_average = []
+                week_30min_average = []
+                week_60min_average = []
+                week_90min_average = []
+                week_120min_average = []
+
             _print_header()
 
         # Capture the weekday.
+        if current_weekday is None or current_weekday != peak.start_time.weekday():
+            week_work_days = week_work_days + 1
+
         current_weekday = peak.start_time.weekday()
 
         # Print the detail.
         _print_detail(peak, max)
 
+        # Find the duration.
+        duration = peak.end_time - peak.start_time
+
+        # Accumulate for this week
+        week_distance_total = week_distance_total + peak.distance
+        week_elevation_total = week_elevation_total + peak.elevation
+        week_duration_total = week_duration_total + duration
+        week_5sec_average.append(peak.peak_5sec_power)
+        week_30sec_average.append(peak.peak_30sec_power)
+        week_60sec_average.append(peak.peak_60sec_power)
+        week_5min_average.append(peak.peak_5min_power)
+        if peak.peak_10min_power:
+            week_10min_average.append(peak.peak_10min_power)
+        if peak.peak_20min_power:
+            week_20min_average.append(peak.peak_20min_power)
+        if peak.peak_30min_power:
+            week_30min_average.append(peak.peak_30min_power)
+        if peak.peak_60min_power:
+            week_60min_average.append(peak.peak_60min_power)
+        if peak.peak_90min_power:
+            week_90min_average.append(peak.peak_90min_power)
+        if peak.peak_120min_power:
+            week_120min_average.append(peak.peak_120min_power)
+
     # Final footer.
-    _print_footer()
+    _print_footer(
+        week_distance_total=week_distance_total,
+        week_elevation_total=week_elevation_total,
+        week_duration_total=week_duration_total,
+        week_work_days=week_work_days,
+        week_5sec_average=week_5sec_average,
+        week_30sec_average=week_30sec_average,
+        week_60sec_average=week_60sec_average,
+        week_5min_average=week_5min_average,
+        week_10min_average=week_10min_average,
+        week_20min_average=week_20min_average,
+        week_30min_average=week_30min_average,
+        week_60min_average=week_60min_average,
+        week_90min_average=week_90min_average,
+        week_120min_average=week_120min_average,
+    )
 
     # Print the summary.
     _print_summary(max)
@@ -184,11 +272,67 @@ def _print_summary(max: Dict[str, List[int]]):
     )
 
 
-def _print_footer():
+def _print_footer(
+    *,
+    week_distance_total: int,
+    week_elevation_total: int,
+    week_duration_total: timedelta,
+    week_work_days: int,
+    week_5sec_average: List[int],
+    week_30sec_average: List[int],
+    week_60sec_average: List[int],
+    week_5min_average: List[int],
+    week_10min_average: List[int],
+    week_20min_average: List[int],
+    week_30min_average: List[int],
+    week_60min_average: List[int],
+    week_90min_average: List[int],
+    week_120min_average: List[int],
+):
     """
     Print a footer.
     """
+
+    # Print a separator
     _print_separator()
+
+    # Format our totals and averages for the week
+    distance = (format(round(week_distance_total / 1000, 2), ".2f") + "km").rjust(8)
+    elevation = (str(week_elevation_total) + "m").rjust(6)
+    duration_total = str(week_duration_total).rjust(8)
+
+    distance_average_delta = week_distance_total / week_work_days
+    distance_average = (
+        format(round(distance_average_delta / 1000, 2), ".2f") + "km"
+    ).rjust(8)
+
+    elevation_average_delta = int(week_elevation_total / week_work_days)
+    elevation_average = (str(elevation_average_delta) + "m").rjust(6)
+
+    duration_average_delta = week_duration_total / week_work_days
+    duration_average = str(duration_average_delta).split(".")[0].rjust(8)
+
+    def _average(values: List[int]) -> str:
+        return str(int(sum(values) / len(values))).rjust(4) if values else "    "
+
+    p5sec = _average(week_5sec_average)
+    p30sec = _average(week_30sec_average)
+    p60sec = _average(week_60sec_average)
+    p5min = _average(week_5min_average)
+    p10min = _average(week_10min_average)
+    p20min = _average(week_20min_average)
+    p30min = _average(week_30min_average)
+    p60min = _average(week_60min_average)
+    p90min = _average(week_90min_average)
+    p120min = _average(week_120min_average)
+
+    print(
+        f"                                                                                      Weekly totals   {distance}      {elevation}           {duration_total}"
+    )
+    print(
+        f"                                                                                    Weekly averages   {distance_average}      {elevation_average}           {duration_average}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}"
+    )
+    print()
 
 
 def _print_separator():
