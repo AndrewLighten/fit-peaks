@@ -3,7 +3,7 @@ import click
 from zwift_loader import load_from_zwift
 from power import power_report
 from hr import hr_report
-
+from detail import detail_report
 
 # Setup a basic CLI application.
 @click.group()
@@ -29,10 +29,18 @@ def do_hr_report():
     hr_report()
 
 
+# Add in a "detail" command
+@click.command("detail", short_help="Show details for specific activity")
+@click.argument("id", required=True, type=int)
+def do_detail_report(id: int):
+    detail_report(id)
+
+
 def main():
     cli.add_command(zwift)
     cli.add_command(do_power_report)
     cli.add_command(do_hr_report)
+    cli.add_command(do_detail_report)
     cli()
 
 

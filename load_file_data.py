@@ -7,7 +7,7 @@ from dateutil import tz
 from fitparse import FitFile
 from fitparse.utils import FitParseError
 
-from peaks import Peaks
+from activity import Activity
 
 # This dictionary describes the time periods (in seconds) that we break power
 # averages into, along with the Peaks attribute that the data is stored in.
@@ -40,7 +40,7 @@ HR_AVERAGES = {
 }
 
 
-def get_file_peaks(*, path: str) -> Peaks:
+def load_file_data(*, path: str) -> Activity:
     """
     Get the peak data from the nominated file.
     
@@ -57,21 +57,25 @@ def get_file_peaks(*, path: str) -> Peaks:
     # Load the power and heart rate data.
     start_time, end_time, power, hr, distance = _load_file_data(fitfile=fitfile)
 
-    # Setup the peaks object
-    peaks = Peaks()
-    peaks.start_time = start_time
-    peaks.end_time = end_time
-    peaks.activity_name = None
-    peaks.elevation = None
-    peaks.distance = distance
-    _load_peaks(source=power, attributes=POWER_AVERAGES, peaks=peaks)
-    _load_peaks(source=hr, attributes=HR_AVERAGES, peaks=peaks)
+    # Setup the activity object
+    activity = Activity()
+    activity.start_time = start_time
+    activity.end_time = end_time
+    activity.activity_name = None
+    activity.elevation = None
+    activity.distance = distance
+    activity.avg_power = sum(power) / len(power)
+    activity.max_power = max(power)
+    activity.avg_hr = sum(hr) / len(hr)
+    activity.max_hr = max(hr)
+    _load_peaks(source=power, attributes=POWER_AVERAGES, activity=activity)
+    _load_peaks(source=hr, attributes=HR_AVERAGES, activity=activity)
 
     # Done.
-    return peaks
+    return activity
 
 
-def _load_peaks(source: List[int], attributes: Dict[int, str], peaks: Peaks):
+def _load_peaks(source: List[int], attributes: Dict[int, str], activity: Activity):
     """
     Load a set of peak data from the nominated source data.
     
@@ -87,19 +91,17 @@ def _load_peaks(source: List[int], attributes: Dict[int, str], peaks: Peaks):
     Args:
         source:     The source data to load from.
         attributes: The attributes we load.
-        peaks:      The peaks object we're populating.
+        activity:   The activity object we're populating.
     """
 
     for window, attr_name in attributes.items():
         if (moving_average := _get_moving_average(source=source, window=window)) :
-            peaks.__dict__[attr_name] = int(max(moving_average))
+            activity.__dict__[attr_name] = int(max(moving_average))
         else:
-            peaks.__dict__[attr_name] = None
+            activity.__dict__[attr_name] = None
 
 
-def _load_file_data(
-    *, fitfile: FitFile
-) -> Tuple[datetime, datetime, List[int], List[int], float]:
+def _load_file_data(*, fitfile: FitFile) -> Tuple[datetime, datetime, List[int], List[int], float]:
     """
     Load the data from the nominated file.
     

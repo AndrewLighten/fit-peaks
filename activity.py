@@ -1,11 +1,11 @@
 from datetime import datetime
 
 
-class Peaks:
+class Activity:
 
     # SQLite row ID
     rowid: int = None
-    
+
     # Start and end times.
     start_time: datetime = None
     end_time: datetime = None
@@ -14,6 +14,14 @@ class Peaks:
     distance: float = None
     elevation: int = None
     activity_name: str = None
+
+    # Overall statistics
+    avg_power: int = None
+    max_power: int = None
+    avg_hr: int = None
+    max_hr: int = None
+
+    normalised_power: int = None
 
     # Power data.
     peak_5sec_power: int = None

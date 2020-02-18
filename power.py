@@ -3,7 +3,7 @@ from typing import List, Dict
 from collections import defaultdict
 
 from persistence import Persistence
-from peaks import Peaks
+from activity import Activity
 
 
 def power_report():
@@ -149,7 +149,7 @@ def _print_header():
     _print_separator()
 
 
-def _print_detail(peak: Peaks, max: Dict[str, List[int]]):
+def _print_detail(peak: Activity, max: Dict[str, List[int]]):
     """
     Print the detail for a particular activity.
     """
@@ -199,7 +199,8 @@ def _print_detail(peak: Peaks, max: Dict[str, List[int]]):
     p30min = _decorate(peak.peak_30min_power, max["30min"], p30min)
     p60min = _decorate(peak.peak_60min_power, max["60min"], p60min)
     p90min = _decorate(peak.peak_90min_power, max["90min"], p90min)
-    p120min = _decorate(peak.peak_120min_power, max["120min"], p120min)
+    if peak.peak_120min_power:
+        p120min = _decorate(peak.peak_120min_power, max["120min"], p120min)
 
     # Print the data.
     print(
@@ -247,9 +248,7 @@ def _print_summary(max: Dict[str, List[int]]):
     p30min_2 = (str(max["30min"][2]) if "30min" in max else "").rjust(4)
     p60min_2 = (str(max["60min"][2]) if "60min" in max else "").rjust(4)
     p90min_2 = (str(max["90min"][2]) if "90min" in max else "").rjust(4)
-    p120min_2 = (
-        str(max["120min"][2]) if "120min" in max and len(max["120min"]) > 2 else ""
-    ).rjust(4)
+    p120min_2 = (str(max["120min"][2]) if "120min" in max and len(max["120min"]) > 2 else "").rjust(4)
 
     # Print the result.
     print()
@@ -303,9 +302,7 @@ def _print_footer(
     duration_total = str(week_duration_total).rjust(8)
 
     distance_average_delta = week_distance_total / week_work_days
-    distance_average = (
-        format(round(distance_average_delta / 1000, 2), ".2f") + "km"
-    ).rjust(8)
+    distance_average = (format(round(distance_average_delta / 1000, 2), ".2f") + "km").rjust(8)
 
     elevation_average_delta = int(week_elevation_total / week_work_days)
     elevation_average = (str(elevation_average_delta) + "m").rjust(6)
@@ -345,7 +342,7 @@ def _print_separator():
     )
 
 
-def _load_max_values(peak_data: List[Peaks]) -> Dict[str, List[int]]:
+def _load_max_values(peak_data: List[Activity]) -> Dict[str, List[int]]:
     """
     Given a list of peaks, find the overall maximum for each of those peaks.
     

@@ -23,14 +23,6 @@ setup(
     python_requires=">=3.8",
     license="https://www.apache.org/licenses/LICENSE-2.0",
     url="https://github.com/AndrewLighten/fit-peaks",
-    platforms=[
-        "Operating System :: MacOS :: MacOS X",
-        "Operating System :: POSIX :: Linux",
-    ],
-    install_requires=[
-        "Click>=7.0",
-        "termcolor>=1.1.0",
-        "fitparse>=1.1.0",
-        "zwift-client>=0.2.0",
-    ],
+    platforms=["Operating System :: MacOS :: MacOS X", "Operating System :: POSIX :: Linux",],
+    install_requires=["Click>=7.0", "termcolor>=1.1.0", "fitparse>=1.1.0", "zwift-client>=0.2.0",],
 )

@@ -9,8 +9,8 @@ import sys
 
 import fitparse.utils
 from persistence import Persistence
-from peaks import Peaks
-from file_peaks import get_file_peaks
+from activity import Activity
+from load_file_data import load_file_data
 from zwift import Client
 
 CONFIG_FILE = str(Path.home()) + "/.fit-peaks.rc"
@@ -55,8 +55,8 @@ def _load_activity_files():
         try:
 
             # Load the file, then persist our peak data.
-            new_peaks = get_file_peaks(path=SOURCE_DIR + "/" + filename)
-            db.store(filename=filename, peaks=new_peaks)
+            new_activity = load_file_data(path=SOURCE_DIR + "/" + filename)
+            db.store(filename=filename, activity=new_activity)
             print(f"Loaded {filename}...")
             loaded += 1
 
@@ -120,10 +120,7 @@ def _load_extra_zwift_data():
 
             # Store the activity name
             db.update_with_zwift_data(
-                start_time=start_time,
-                end_time=end_time,
-                elevation=elevation,
-                activity_name=activity_name,
+                start_time=start_time, end_time=end_time, elevation=elevation, activity_name=activity_name,
             )
 
         # Move on
