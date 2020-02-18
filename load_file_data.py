@@ -66,6 +66,7 @@ def load_file_data(*, path: str) -> Activity:
     activity.distance = distance
     activity.avg_power = sum(power) / len(power)
     activity.max_power = max(power)
+    activity.normalised_power = _calculate_normalised_power(power=power)
     activity.avg_hr = sum(hr) / len(hr)
     activity.max_hr = max(hr)
     _load_peaks(source=power, attributes=POWER_AVERAGES, activity=activity)
@@ -156,7 +157,7 @@ def _get_moving_average(*, source: List[int], window: int) -> List[int]:
     
     Args:
         source: The data to iterate over.
-        window: The moving average window.
+        window: The moving average window, in seconds.
     
     Yields:
          The moving averages found in the data.
@@ -181,3 +182,52 @@ def _get_moving_average(*, source: List[int], window: int) -> List[int]:
 
     # Done.
     return avg_list
+
+def _calculate_normalised_power(*, power: List[int]) -> int:
+    """
+    Given a collection of power figures, calculate the normalised power.
+    
+    This algorithm comes from the book ‘Training and Racing with a Power Meter’,
+    by Hunter and Allen via the blog post at
+    https://medium.com/critical-powers/formulas-from-training-and-racing-with-a-power-meter-2a295c661b46.
+
+    In essence, it's as follows:
+
+    Step 1
+        Calculate the rolling average with a window of 30 seconds: 
+        Start at 30 seconds, calculate the average power of the previous 
+        30 seconds and to the end for every second after that.
+
+    Step 2
+        Calculate the 4th power of the values from the previous step.
+
+    Step 3
+        Calculate the average of the values from the previous step.
+
+    Step 4
+        Take the fourth root of the average from the previous step.
+        This is your normalized power.
+
+    Args:
+        power: The power figures for each second.
+    
+    Returns:
+        int: The normalised power.
+    """
+
+    # Step 1: get our moving averages
+    moving_averages = _get_moving_average(source=power, window=30)
+    if not moving_averages:
+        return 0
+
+    # Step 2: calculate the fourth power of each figure
+    fourth_powers = [pow(x,4) for x in moving_averages]
+
+    # Step 3: Calculate the average of our fourth powers
+    fourth_power_average = sum(fourth_powers) / len(fourth_powers)
+
+    # Step 4: Take the fourth root of the average to yield normalised power
+    normalised_power = pow(fourth_power_average, 0.25)
+
+    # Done!
+    return normalised_power

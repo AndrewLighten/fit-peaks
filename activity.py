@@ -18,6 +18,7 @@ class Activity:
     # Overall statistics
     avg_power: int = None
     max_power: int = None
+    normalised_power: int = None
     avg_hr: int = None
     max_hr: int = None
 

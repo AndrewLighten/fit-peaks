@@ -8,7 +8,7 @@ from typing import Optional, List, Tuple
 
 from activity import Activity
 
-DATABASE_NAME = str(Path.home()) + "/.fit-peaks.dat"
+DATABASE_NAME = str(Path.home()) + "/.fitpeaks-activity.dat"
 
 CREATE_TABLE = """
             create table activity
@@ -24,6 +24,8 @@ CREATE_TABLE = """
 
                 avg_power           int,
                 max_power           int,
+                normalised_power    int,
+
                 avg_hr              int,
                 max_hr              int,
 
@@ -54,7 +56,7 @@ CREATE_TABLE = """
 SELECT = """
     select rowid,
         filename, start_time, end_time, distance, elevation, activity_name,
-        avg_power, max_power, avg_hr, max_hr,
+        avg_power, max_power, normalised_power, avg_hr, max_hr,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
         peak_5sec_hr,     peak_30sec_hr,    peak_60sec_hr,    peak_5min_hr,     peak_10min_hr,
@@ -77,6 +79,7 @@ class SelectIndices(Enum):
     ActivityName = auto()
     AvgPower = auto()
     MaxPower = auto()
+    NormalisedPower = auto()
     AvgHr = auto()
     MaxHr = auto()
     Peak5SecPower = auto()
@@ -107,7 +110,7 @@ INSERT_SQL = """
     insert into activity 
     (
         filename, start_time, end_time, distance, elevation, activity_name,
-        avg_power, max_power, avg_hr, max_hr,
+        avg_power, max_power, normalised_power, avg_hr, max_hr,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
         peak_5sec_hr,     peak_30sec_hr,    peak_60sec_hr,    peak_5min_hr,     peak_10min_hr,
@@ -116,7 +119,7 @@ INSERT_SQL = """
     values 
     (
         :filename, :start_time, :end_time, :distance, :elevation, :activity_name,
-        :avg_power, :max_power, :avg_hr, :max_hr,
+        :avg_power, :max_power, :normalised_power, :avg_hr, :max_hr,
         :peak_5sec_power,  :peak_30sec_power, :peak_60sec_power, :peak_5min_power,  :peak_10min_power,
         :peak_20min_power, :peak_30min_power, :peak_60min_power, :peak_90min_power, :peak_120min_power, 
         :peak_5sec_hr,     :peak_30sec_hr,    :peak_60sec_hr,    :peak_5min_hr,     :peak_10min_hr,
@@ -131,6 +134,7 @@ INSERT_SQL = """
         activity_name       = :activity_name,
         avg_power           = :avg_power,
         max_power           = :max_power,
+        normalised_power    = :normalised_power,
         avg_hr              = :avg_hr,
         max_hr              = :max_hr,
         peak_5sec_power     = :peak_5sec_power,  
@@ -287,6 +291,7 @@ class Persistence:
         # Fetch overall power and HR data
         activity.avg_power = record[SelectIndices.AvgPower.value]
         activity.max_power = record[SelectIndices.MaxPower.value]
+        activity.normalised_power = record[SelectIndices.NormalisedPower.value]
         activity.avg_hr = record[SelectIndices.AvgHr.value]
         activity.max_hr = record[SelectIndices.MaxHr.value]
 
@@ -323,7 +328,7 @@ class Persistence:
         
         Args:
             filename: The name of the file we got this activity data from.
-            activity: The activity to persist.\
+            activity: The activity to persist.
         """
 
         # Setup parameters for insert.

@@ -42,10 +42,10 @@ def _print_basic_data(activity: Activity):
     duration = str(activity.end_time - activity.start_time).rjust(8)
 
     print()
-    print(f"Date ............. {date}")
-    print(f"Start time ....... {start}")
-    print(f"Duration ......... {duration}")
-    print(f"End time ......... {end}")
+    print(f"Date ................ {date}")
+    print(f"Start time .......... {start}")
+    print(f"Duration ............ {duration}")
+    print(f"End time ............ {end}")
 
     # Distances
     distance = format(round(activity.distance / 1000, 2), ".2f") + "km"
@@ -57,9 +57,9 @@ def _print_basic_data(activity: Activity):
     speed_in_kmhr = format(speed_in_ms * 3600 / 1000, ".1f")
 
     print()
-    print(f"Distance ......... {distance}")
-    print(f"Average speed .... {speed_in_kmhr} km/hr")
-    print(f"Elevation gain ... {elevation}")
+    print(f"Distance ............ {distance}")
+    print(f"Average speed ....... {speed_in_kmhr} km/hr")
+    print(f"Elevation gain ...... {elevation}")
 
 
 def _print_power_data(activity: Activity):
@@ -69,10 +69,13 @@ def _print_power_data(activity: Activity):
     Args:
         activity: The activity to print power data for.
     """
-    print("")
-    print(f"Average power .... {int(activity.avg_power)}W")
-    print(f"Maximum power .... {activity.max_power}W")
 
+    variability_index = format(activity.normalised_power / activity.avg_power, ".2f")
+    print("")
+    print(f"Average power ....... {int(activity.avg_power)}W")
+    print(f"Maximum power ....... {activity.max_power}W")
+    print(f"Normalised power .... {int(activity.normalised_power)}W")
+    print(f"Variability index ... {variability_index}")
 
 def _print_hr_data(activity: Activity):
     """
@@ -82,8 +85,8 @@ def _print_hr_data(activity: Activity):
         activity: The activity to print HR data for.
     """
     print("")
-    print(f"Average HR ....... {int(activity.avg_hr)} bpm")
-    print(f"Maximum HR ....... {activity.max_hr} bpm")
+    print(f"Average HR .......... {int(activity.avg_hr)} bpm")
+    print(f"Maximum HR .......... {activity.max_hr} bpm")
 
 
 def _print_peaks(activity: Activity):
