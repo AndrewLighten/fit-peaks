@@ -23,6 +23,9 @@ def detail_report(id: int):
     _print_hr_data(activity)
     _print_peaks(activity)
 
+    # Done
+    print()
+
 
 def _print_basic_data(activity: Activity):
     """
@@ -33,8 +36,8 @@ def _print_basic_data(activity: Activity):
     """
 
     # Activity ID and name
-    print("\033[2J\033[H")
-    print(f"\fActivity #{activity.rowid}: \033[32m\033[1m{activity.activity_name}\033[0m")
+    print("")
+    print(f"Activity #{activity.rowid}: \033[32m\033[1m{activity.activity_name}\033[0m")
 
     # Date, time, duration
     date = activity.start_time.strftime("%A %d %B, %Y")
@@ -46,9 +49,8 @@ def _print_basic_data(activity: Activity):
     print("\033[34m\033[1mBasic statistics\033[0m")
     print("")
     print(f"    Date ................ {date}")
-    print(f"    Start time .......... {start}")
+    print(f"    Time ................ {start} to {end}")
     print(f"    Duration ............ {duration}")
-    print(f"    End time ............ {end}")
 
     # Distances
     distance = format(round(activity.distance / 1000, 2), ".2f") + "km"
@@ -57,7 +59,7 @@ def _print_basic_data(activity: Activity):
     duration_in_seconds = (activity.end_time - activity.start_time).seconds
     distance_in_meters = activity.distance
     speed_in_ms = distance_in_meters / duration_in_seconds
-    speed_in_kmhr = format(speed_in_ms * 3600 / 1000, ".1f")
+    speed_in_kmhr = format(speed_in_ms * 3600 / 1000, ".2f")
 
     print()
     print(f"    Distance ............ {distance}")
@@ -79,18 +81,18 @@ def _print_power_data(activity: Activity):
     variability_index = activity.normalised_power / activity.avg_power
     intensity_factor = activity.normalised_power / ftp if ftp else 0
     duration_in_seconds = (activity.end_time - activity.start_time).seconds
-    tss = ((duration_in_seconds * activity.normalised_power * intensity_factor) / (ftp * 36)) if ftp else 0
+    tss = int(((duration_in_seconds * activity.normalised_power * intensity_factor) / (ftp * 36))) if ftp else 0
 
     variability_index_text = format(variability_index, ".2f")
     intensity_factor_text = format(intensity_factor, ".2f")
-    tss_text = format(tss, ".0f")
+    tss_text = str(tss)
 
     print("")
     print("\033[34m\033[1mPower data\033[0m")
     print("")
-    print(f"    Average power ....... {int(activity.avg_power)}W")
-    print(f"    Maximum power ....... {activity.max_power}W")
-    print(f"    Normalised power .... {int(activity.normalised_power)}W")
+    print(f"    Average ............. {int(activity.avg_power)}W")
+    print(f"    Maximum ............. {activity.max_power}W")
+    print(f"    Normalised .......... {int(activity.normalised_power)}W")
     print(f"    Variability index ... {variability_index_text}")
     print("")
     print(f"    FTP ................. {ftp}W")
@@ -108,8 +110,8 @@ def _print_hr_data(activity: Activity):
     print("")
     print("\033[34m\033[1mHeart data\033[0m")
     print("")
-    print(f"    Average HR .......... {int(activity.avg_hr)} bpm")
-    print(f"    Maximum HR .......... {activity.max_hr} bpm")
+    print(f"    Average ............. {int(activity.avg_hr)} bpm")
+    print(f"    Maximum ............. {activity.max_hr} bpm")
 
 
 def _print_peaks(activity: Activity):

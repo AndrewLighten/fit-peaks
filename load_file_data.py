@@ -64,10 +64,10 @@ def load_file_data(*, path: str) -> Activity:
     activity.activity_name = None
     activity.elevation = None
     activity.distance = distance
-    activity.avg_power = sum(power) / len(power)
+    activity.avg_power = int(sum(power) / len(power))
     activity.max_power = max(power)
     activity.normalised_power = _calculate_normalised_power(power=power)
-    activity.avg_hr = sum(hr) / len(hr)
+    activity.avg_hr = int(sum(hr) / len(hr))
     activity.max_hr = max(hr)
     _load_peaks(source=power, attributes=POWER_AVERAGES, activity=activity)
     _load_peaks(source=hr, attributes=HR_AVERAGES, activity=activity)
@@ -231,4 +231,4 @@ def _calculate_normalised_power(*, power: List[int]) -> int:
     normalised_power = pow(fourth_power_average, 0.25)
 
     # Done!
-    return normalised_power
+    return int(normalised_power)

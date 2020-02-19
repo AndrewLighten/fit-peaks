@@ -20,12 +20,12 @@ def hr_report():
 
     # Load the peak data.
     db = Persistence()
-    if not (peak_data := db.load_all()):
+    if not (activities := db.load_all()):
         print("No data to report on")
         return
 
     # Find the maximum for each value.
-    max = _load_max_values(peak_data)
+    max = _load_max_values(activities)
 
     # Totals for the current week
     week_distance_total = 0
@@ -45,10 +45,10 @@ def hr_report():
 
     # Print the peak data for each week.
     current_weekday = None
-    for peak in peak_data:
+    for activity in activities:
 
         # Time to break to a new week?
-        if current_weekday is None or current_weekday > peak.start_time.weekday():
+        if current_weekday is None or current_weekday > activity.start_time.weekday():
             if current_weekday:
                 _print_footer(
                     week_distance_total=week_distance_total,
@@ -84,42 +84,45 @@ def hr_report():
             _print_header()
 
         # Capture the weekday.
-        if current_weekday is None or current_weekday != peak.start_time.weekday():
+        if current_weekday is None or current_weekday != activity.start_time.weekday():
             week_work_days = week_work_days + 1
 
-        current_weekday = peak.start_time.weekday()
+        current_weekday = activity.start_time.weekday()
 
         # Print the detail.
-        _print_detail(peak, max)
+        _print_detail(activity, max)
 
         # Find the duration.
-        duration = peak.end_time - peak.start_time
+        duration = activity.end_time - activity.start_time
 
         # Accumulate for this week
-        week_distance_total = week_distance_total + peak.distance
-        week_elevation_total = week_elevation_total + peak.elevation
+        week_distance_total = week_distance_total + activity.distance
+        if activity.elevation:
+            week_elevation_total = week_elevation_total + activity.elevation
         week_duration_total = week_duration_total + duration
-        week_5sec_average.append(peak.peak_5sec_hr)
-        week_30sec_average.append(peak.peak_30sec_hr)
-        week_60sec_average.append(peak.peak_60sec_hr)
-        week_5min_average.append(peak.peak_5min_hr)
-        if peak.peak_10min_hr:
-            week_10min_average.append(peak.peak_10min_hr)
-        if peak.peak_20min_hr:
-            week_20min_average.append(peak.peak_20min_hr)
-        if peak.peak_30min_hr:
-            week_30min_average.append(peak.peak_30min_hr)
-        if peak.peak_60min_hr:
-            week_60min_average.append(peak.peak_60min_hr)
-        if peak.peak_90min_hr:
-            week_90min_average.append(peak.peak_90min_hr)
-        if peak.peak_120min_hr:
-            week_120min_average.append(peak.peak_120min_hr)
+        week_5sec_average.append(activity.peak_5sec_hr)
+        week_30sec_average.append(activity.peak_30sec_hr)
+        week_60sec_average.append(activity.peak_60sec_hr)
+        if activity.peak_5min_hr:
+            week_5min_average.append(activity.peak_5min_hr)
+        if activity.peak_10min_hr:
+            week_10min_average.append(activity.peak_10min_hr)
+        if activity.peak_20min_hr:
+            week_20min_average.append(activity.peak_20min_hr)
+        if activity.peak_30min_hr:
+            week_30min_average.append(activity.peak_30min_hr)
+        if activity.peak_60min_hr:
+            week_60min_average.append(activity.peak_60min_hr)
+        if activity.peak_90min_hr:
+            week_90min_average.append(activity.peak_90min_hr)
+        if activity.peak_120min_hr:
+            week_120min_average.append(activity.peak_120min_hr)
 
     # Final footer.
     _print_footer(
         week_distance_total=week_distance_total,
         week_elevation_total=week_elevation_total,
+
         week_duration_total=week_duration_total,
         week_work_days=week_work_days,
         week_5sec_average=week_5sec_average,
@@ -143,6 +146,9 @@ def _print_header():
     Print the report header.
     """
     print()
+    print(
+        "                                                                                                                                                        ───────────────────────┨ Measurements in BPM ┠─────────────────────"
+    )
     print(
         "ID      Date               Activity                                                                           Distance   Elevation   Start   Duration     5s    30s    60s     5m    10m    20m    30m    60m    90m   120m"
     )
@@ -252,6 +258,9 @@ def _print_summary(max: Dict[str, List[int]]):
     # Print the result.
     print()
     print(
+        "                                                                                                                                                        ───────────────────────┨ Measurements in BPM ┠─────────────────────"
+    )
+    print(
         "                                                                                                                                                          5s    30s    60s     5m    10m    20m    30m    60m    90m   120m"
     )
     print(
@@ -341,12 +350,12 @@ def _print_separator():
     )
 
 
-def _load_max_values(peak_data: List[Activity]) -> Dict[str, List[int]]:
+def _load_max_values(activities: List[Activity]) -> Dict[str, List[int]]:
     """
-    Given a list of peaks, find the overall maximum for each of those peaks.
+    Given a list of activity peaks, find the overall maximum for each of those peaks.
     
     Args:
-        peak_data: Our peak data.
+        activities: Our activity data.
     
     Returns:
         Dict[str, int]: The maximum peak for each time period.
@@ -367,17 +376,17 @@ def _load_max_values(peak_data: List[Activity]) -> Dict[str, List[int]]:
         l.append(val)
 
     # Visit each time period to find the maximum value.
-    for peak in peak_data:
-        _max(peak.peak_5sec_hr, "5sec")
-        _max(peak.peak_30sec_hr, "30sec")
-        _max(peak.peak_60sec_hr, "60sec")
-        _max(peak.peak_5min_hr, "5min")
-        _max(peak.peak_10min_hr, "10min")
-        _max(peak.peak_20min_hr, "20min")
-        _max(peak.peak_30min_hr, "30min")
-        _max(peak.peak_60min_hr, "60min")
-        _max(peak.peak_90min_hr, "90min")
-        _max(peak.peak_120min_hr, "120min")
+    for activity in activities:
+        _max(activity.peak_5sec_hr, "5sec")
+        _max(activity.peak_30sec_hr, "30sec")
+        _max(activity.peak_60sec_hr, "60sec")
+        _max(activity.peak_5min_hr, "5min")
+        _max(activity.peak_10min_hr, "10min")
+        _max(activity.peak_20min_hr, "20min")
+        _max(activity.peak_30min_hr, "30min")
+        _max(activity.peak_60min_hr, "60min")
+        _max(activity.peak_90min_hr, "90min")
+        _max(activity.peak_120min_hr, "120min")
 
     # Now sort each list
     for key in max:

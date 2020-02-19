@@ -17,6 +17,9 @@ class FTP:
     ftp: int
 
 
+FTP_LIST: List[FTP] = []
+
+
 def get_ftp(when: datetime) -> Optional[int]:
     """
     Get the FTP value that is in effect for a particular date.
@@ -29,17 +32,19 @@ def get_ftp(when: datetime) -> Optional[int]:
     """
 
     # Fetch the FTP list
-    if not (ftp_list := _get_all_ftp_values()):
-        return None
-    when = when.replace(tzinfo=None)
+    global FTP_LIST
+    if not FTP_LIST:
+        if not (FTP_LIST := _get_all_ftp_values()):
+            return None
+        when = when.replace(tzinfo=None)
 
     # Find the FTP entry with the latest date equal to or before
     # the provided date
     selected_ftp = None
-    for ftp in ftp_list:
+    for ftp in FTP_LIST:
         if ftp.start_date.date() < when.date():
             selected_ftp = ftp.ftp
-    
+
     # Done
     return selected_ftp
 

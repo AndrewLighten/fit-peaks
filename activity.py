@@ -22,8 +22,6 @@ class Activity:
     avg_hr: int = None
     max_hr: int = None
 
-    normalised_power: int = None
-
     # Power data.
     peak_5sec_power: int = None
     peak_30sec_power: int = None
@@ -47,3 +45,9 @@ class Activity:
     peak_60min_hr: int = None
     peak_90min_hr: int = None
     peak_120min_hr: int = None
+
+    # Transient values
+    variability_index: float = None
+    ftp: int = None
+    intensity_factor: float = None
+    tss: int = None
