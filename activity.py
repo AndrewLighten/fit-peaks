@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from typing import List
 
 class Activity:
 
@@ -21,6 +21,10 @@ class Activity:
     normalised_power: int = None
     avg_hr: int = None
     max_hr: int = None
+
+    # Raw data
+    raw_power: List[int] = None
+    raw_hr: List[int] = None
 
     # Power data.
     peak_5sec_power: int = None

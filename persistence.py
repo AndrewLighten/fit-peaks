@@ -29,6 +29,9 @@ CREATE_TABLE = """
                 avg_hr              int,
                 max_hr              int,
 
+                raw_power           text,
+                raw_hr              text,
+
                 peak_5sec_power     int             null,
                 peak_30sec_power    int             null,
                 peak_60sec_power    int             null,
@@ -56,7 +59,7 @@ CREATE_TABLE = """
 SELECT = """
     select rowid,
         filename, start_time, end_time, distance, elevation, activity_name,
-        avg_power, max_power, normalised_power, avg_hr, max_hr,
+        avg_power, max_power, normalised_power, avg_hr, max_hr, raw_power, raw_hr,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
         peak_5sec_hr,     peak_30sec_hr,    peak_60sec_hr,    peak_5min_hr,     peak_10min_hr,
@@ -82,6 +85,8 @@ class SelectIndices(Enum):
     NormalisedPower = auto()
     AvgHr = auto()
     MaxHr = auto()
+    RawPower = auto()
+    RawHr = auto()
     Peak5SecPower = auto()
     Peak30SecPower = auto()
     Peak60SecPower = auto()
@@ -110,7 +115,7 @@ INSERT_SQL = """
     insert into activity 
     (
         filename, start_time, end_time, distance, elevation, activity_name,
-        avg_power, max_power, normalised_power, avg_hr, max_hr,
+        avg_power, max_power, normalised_power, avg_hr, max_hr, raw_power, raw_hr,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
         peak_5sec_hr,     peak_30sec_hr,    peak_60sec_hr,    peak_5min_hr,     peak_10min_hr,
@@ -119,7 +124,7 @@ INSERT_SQL = """
     values 
     (
         :filename, :start_time, :end_time, :distance, :elevation, :activity_name,
-        :avg_power, :max_power, :normalised_power, :avg_hr, :max_hr,
+        :avg_power, :max_power, :normalised_power, :avg_hr, :max_hr, :raw_power, :raw_hr,
         :peak_5sec_power,  :peak_30sec_power, :peak_60sec_power, :peak_5min_power,  :peak_10min_power,
         :peak_20min_power, :peak_30min_power, :peak_60min_power, :peak_90min_power, :peak_120min_power, 
         :peak_5sec_hr,     :peak_30sec_hr,    :peak_60sec_hr,    :peak_5min_hr,     :peak_10min_hr,
@@ -137,6 +142,8 @@ INSERT_SQL = """
         normalised_power    = :normalised_power,
         avg_hr              = :avg_hr,
         max_hr              = :max_hr,
+        raw_power           = :raw_power,
+        raw_hr              = :raw_hr,
         peak_5sec_power     = :peak_5sec_power,  
         peak_30sec_power    = :peak_30sec_power,
         peak_60sec_power    = :peak_60sec_power,
@@ -295,6 +302,10 @@ class Persistence:
         activity.avg_hr = record[SelectIndices.AvgHr.value]
         activity.max_hr = record[SelectIndices.MaxHr.value]
 
+        # Fetch raw power and HR
+        activity.raw_power = [int(p) for p in record[SelectIndices.RawPower.value].split(",")]
+        activity.raw_hr = [int(hr) for hr in record[SelectIndices.RawHr.value].split(",")]
+
         # Fetch power peaks
         activity.peak_5sec_power = record[SelectIndices.Peak5SecPower.value]
         activity.peak_30sec_power = record[SelectIndices.Peak30SecPower.value]
@@ -336,7 +347,10 @@ class Persistence:
             "filename": filename,
         }
         for key, value in activity.__dict__.items():
-            params[key] = value
+            if key in ["raw_power","raw_hr"]:
+                params[key] = ",".join(str(x) for x in value)
+            else:
+                params[key] = value
 
         # Insert the record.
         self.conn.execute(INSERT_SQL, params)

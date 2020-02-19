@@ -69,6 +69,8 @@ def load_file_data(*, path: str) -> Activity:
     activity.normalised_power = _calculate_normalised_power(power=power)
     activity.avg_hr = int(sum(hr) / len(hr))
     activity.max_hr = max(hr)
+    activity.raw_power = power
+    activity.raw_hr = hr
     _load_peaks(source=power, attributes=POWER_AVERAGES, activity=activity)
     _load_peaks(source=hr, attributes=HR_AVERAGES, activity=activity)
 
