@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+from calculation_data import AerobicDecoupling
 
 class Activity:
 
@@ -51,7 +52,10 @@ class Activity:
     peak_120min_hr: int = None
 
     # Transient values
+    duration_in_seconds: int = None
     variability_index: float = None
     ftp: int = None
     intensity_factor: float = None
     tss: int = None
+    speed_in_kmhr: float = None
+    aerobic_decoupling: AerobicDecoupling = None

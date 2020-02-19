@@ -347,7 +347,7 @@ class Persistence:
             "filename": filename,
         }
         for key, value in activity.__dict__.items():
-            if key in ["raw_power","raw_hr"]:
+            if key in ["raw_power", "raw_hr"]:
                 params[key] = ",".join(str(x) for x in value)
             else:
                 params[key] = value

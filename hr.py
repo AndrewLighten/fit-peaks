@@ -122,7 +122,6 @@ def hr_report():
     _print_footer(
         week_distance_total=week_distance_total,
         week_elevation_total=week_elevation_total,
-
         week_duration_total=week_duration_total,
         week_work_days=week_work_days,
         week_5sec_average=week_5sec_average,

@@ -1,7 +1,10 @@
 from persistence import Persistence
 from activity import Activity
 from ftp import get_ftp
-
+from typing import List
+from calculations import calculate_aerobic_decoupling
+from calculation_data import AerobicDecoupling
+from formatting import format_aero_decoupling
 
 def detail_report(id: int):
     """
@@ -17,9 +20,14 @@ def detail_report(id: int):
         print(f"Cannot find activity #{id}")
         return
 
+    # Calculate transient data
+    _calculate_transient_activity_values(activity)
+
     # Print our data
     _print_basic_data(activity)
     _print_power_data(activity)
+    if activity.duration_in_seconds >= 300:
+        _print_aerobic_decoupling(activity)
     _print_hr_data(activity)
     _print_peaks(activity)
 
@@ -55,15 +63,11 @@ def _print_basic_data(activity: Activity):
     # Distances
     distance = format(round(activity.distance / 1000, 2), ".2f") + "km"
     elevation = (str(activity.elevation) + "m") if activity.elevation else ""
-
-    duration_in_seconds = (activity.end_time - activity.start_time).seconds
-    distance_in_meters = activity.distance
-    speed_in_ms = distance_in_meters / duration_in_seconds
-    speed_in_kmhr = format(speed_in_ms * 3600 / 1000, ".2f")
+    average_speed = format(activity.speed_in_kmhr, ".2f")
 
     print()
     print(f"    Distance ............ {distance}")
-    print(f"    Average speed ....... {speed_in_kmhr}km/hr")
+    print(f"    Average speed ....... {average_speed}km/hr")
     print(f"    Elevation gain ...... {elevation}")
 
 
@@ -75,17 +79,9 @@ def _print_power_data(activity: Activity):
         activity: The activity to print power data for.
     """
 
-    # Calculate some power details
-    # Taken from https://medium.com/critical-powers/formulas-from-training-and-racing-with-a-power-meter-2a295c661b46
-    ftp = get_ftp(activity.start_time)
-    variability_index = activity.normalised_power / activity.avg_power
-    intensity_factor = activity.normalised_power / ftp if ftp else 0
-    duration_in_seconds = (activity.end_time - activity.start_time).seconds
-    tss = int(((duration_in_seconds * activity.normalised_power * intensity_factor) / (ftp * 36))) if ftp else 0
-
-    variability_index_text = format(variability_index, ".2f")
-    intensity_factor_text = format(intensity_factor, ".2f")
-    tss_text = str(tss)
+    variability_index_text = format(activity.variability_index, ".2f")
+    intensity_factor_text = format(activity.intensity_factor, ".2f")
+    tss_text = str(activity.tss)
 
     print("")
     print("\033[34m\033[1mPower data\033[0m")
@@ -95,7 +91,7 @@ def _print_power_data(activity: Activity):
     print(f"    Normalised .......... {int(activity.normalised_power)}W")
     print(f"    Variability index ... {variability_index_text}")
     print("")
-    print(f"    FTP ................. {ftp}W")
+    print(f"    FTP ................. {activity.ftp}W")
     print(f"    Intensity factor .... {intensity_factor_text}")
     print(f"    TSS ................. {tss_text}")
 
@@ -112,6 +108,32 @@ def _print_hr_data(activity: Activity):
     print("")
     print(f"    Average ............. {int(activity.avg_hr)} bpm")
     print(f"    Maximum ............. {activity.max_hr} bpm")
+
+
+def _print_aerobic_decoupling(activity: Activity):
+    """
+    Calculate and print the aerobic decoupling ratio.
+
+    Taken from https://www.trainingpeaks.com/blog/aerobic-endurance-and-decoupling.
+    
+    Args:
+        activity: The activity data.
+    """
+
+    # Find the aerobic decoupling
+    aerobic_decoupling: AerobicDecoupling = calculate_aerobic_decoupling(activity)
+
+    # Format and display
+    first_half_text = format(aerobic_decoupling.first_half_ratio, ".2f")
+    second_half_text = format(aerobic_decoupling.second_half_ratio, ".2f")
+    coupling_text = format_aero_decoupling(aerobic_decoupling=aerobic_decoupling, width=0)
+
+    print("")
+    print("\033[34m\033[1mAerobic coupling\033[0m")
+    print("")
+    print(f"    Overall ............. {coupling_text}")
+    print(f"    First half .......... {first_half_text} (pAvg:hrAvg)")
+    print(f"    Second half ......... {second_half_text} (pAvg:hrAvg)")
 
 
 def _print_peaks(activity: Activity):
@@ -167,3 +189,31 @@ def _print_peaks(activity: Activity):
     if activity.peak_120min_power or activity.peak_120min_hr:
         print(f"    120 min{p120min}  {hr120min}")
     print("           ---------  ---------")
+
+
+def _calculate_transient_activity_values(activity: Activity):
+    """
+    Calculate the transient values for a specific activity.
+    
+    Args:
+        activity: The activity to calculate the transient values for.
+    """
+
+    # Calculate some power details
+    # Taken from https://medium.com/critical-powers/formulas-from-training-and-racing-with-a-power-meter-2a295c661b46
+    activity.variability_index = activity.normalised_power / activity.avg_power
+    activity.ftp = get_ftp(activity.start_time)
+    activity.intensity_factor = activity.normalised_power / activity.ftp if activity.ftp else 0
+
+    activity.duration_in_seconds = (activity.end_time - activity.start_time).seconds
+    activity.tss = (
+        int(
+            (activity.duration_in_seconds * activity.normalised_power * activity.intensity_factor) / (activity.ftp * 36)
+        )
+        if activity.ftp
+        else 0
+    )
+
+    distance_in_meters = activity.distance
+    speed_in_ms = distance_in_meters / activity.duration_in_seconds
+    activity.speed_in_kmhr = speed_in_ms * 3600 / 1000

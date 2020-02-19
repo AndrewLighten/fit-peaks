@@ -5,7 +5,9 @@ from collections import defaultdict
 from persistence import Persistence
 from activity import Activity
 from ftp import get_ftp
-
+from calculations import calculate_aerobic_decoupling
+from calculation_data import AerobicDecoupling
+from formatting import format_aero_decoupling
 
 def power_report():
     """
@@ -163,10 +165,10 @@ def _print_header():
     """
     print()
     print(
-        "                                                                                                                                                        ────────────────────────────────────┨ Measurements in Watts ┠──────────────────────────────────"
+        "                                                                                                                                                        ┌──────────────────────────────────── Measurements in Watts ──────────────────────────────────┐"
     )
     print(
-        "ID      Date               Activity                                                                           Distance   Elevation   Start   Duration     5s    30s    60s     5m    10m    20m    30m    60m    90m   120m   pMax   pAvg   pNor    FTP    V/I    I/F    TSS"
+        "ID      Date               Activity                                                                           Distance   Elevation   Start   Duration     5s    30s    60s     5m    10m    20m    30m    60m    90m   120m   pMax   pAvg   pNor    FTP    V/I    I/F    TSS   AeroDe"
     )
     _print_separator()
 
@@ -212,7 +214,7 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
     p120min = str(activity.peak_120min_power).rjust(4) if activity.peak_120min_power else "    "
 
     # Helper to decorate a peak with ANSI escape sequence highlights.
-    def _decorate(val: int, max: List[int], label: str) -> str:
+    def _decorate(val: Any, max: List[Any], label: str) -> str:
         if max is None or val is None:
             return label
         if val >= max[0]:
@@ -240,10 +242,13 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
     p_nor = _decorate(activity.normalised_power, max["pNor"], p_nor)
     intensity_factor_text = _decorate(activity.intensity_factor, max["IF"], intensity_factor_text)
     tss_text = _decorate(activity.tss, max["tss"], tss_text)
+    coupling_text = format_aero_decoupling(aerobic_decoupling=activity.aerobic_decoupling, width=6)
+
+    # Color the aero decoupling
 
     # Print the data.
     print(
-        f"{rowid}   {date}   {activity_name}   {distance}      {elevation}   {start}   {duration}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}   {p_max}   {p_avg}   {p_nor}    {ftp_text}   {variability_index}   {intensity_factor_text}   {tss_text}"
+        f"{rowid}   {date}   {activity_name}   {distance}      {elevation}   {start}   {duration}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}   {p_max}   {p_avg}   {p_nor}    {ftp_text}   {variability_index}   {intensity_factor_text}   {tss_text}   {coupling_text}"
     )
 
 
@@ -307,7 +312,7 @@ def _print_summary(max: Dict[str, List[int]]):
     # Print the result.
     print()
     print(
-        "                                                                                                                                                        ────────────────────────────────┨ Measurements in Watts ┠───────────────────────────────"
+        "                                                                                                                                                        ┌──────────────────────────────── Measurements in Watts ───────────────────────────────┐"
     )
     print(
         "                                                                                                                                                          5s    30s    60s     5m    10m    20m    30m    60m    90m   120m   pMax   pAvg   pNor                  I/F    TSS"
@@ -399,7 +404,7 @@ def _print_separator():
     Print a commonly used separator.
     """
     print(
-        "─────   ────────────────   ────────────────────────────────────────────────────────────────────────────────   ────────   ─────────   ─────   ────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────"
+        "─────   ────────────────   ────────────────────────────────────────────────────────────────────────────────   ────────   ─────────   ─────   ────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ──────"
     )
 
 
@@ -423,6 +428,7 @@ def _calculate_transient_activity_values(activity: Activity):
         activity: The activity to calculate the transient values for.
     """
 
+    # Simple stuff
     activity.variability_index = activity.normalised_power / activity.avg_power
     activity.ftp = get_ftp(activity.start_time)
     activity.intensity_factor = activity.normalised_power / activity.ftp if activity.ftp else 0
@@ -433,6 +439,10 @@ def _calculate_transient_activity_values(activity: Activity):
         if activity.ftp
         else 0
     )
+
+    # Now calculate aerobic decoupling
+    # See https://www.trainingpeaks.com/blog/aerobic-endurance-and-decoupling.
+    activity.aerobic_decoupling = calculate_aerobic_decoupling(activity)
 
 
 def _load_max_values(activities: List[Activity]) -> Dict[str, List[int]]:
