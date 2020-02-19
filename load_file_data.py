@@ -183,6 +183,7 @@ def _get_moving_average(*, source: List[int], window: int) -> List[int]:
     # Done.
     return avg_list
 
+
 def _calculate_normalised_power(*, power: List[int]) -> int:
     """
     Given a collection of power figures, calculate the normalised power.
@@ -221,7 +222,7 @@ def _calculate_normalised_power(*, power: List[int]) -> int:
         return 0
 
     # Step 2: calculate the fourth power of each figure
-    fourth_powers = [pow(x,4) for x in moving_averages]
+    fourth_powers = [pow(x, 4) for x in moving_averages]
 
     # Step 3: Calculate the average of our fourth powers
     fourth_power_average = sum(fourth_powers) / len(fourth_powers)

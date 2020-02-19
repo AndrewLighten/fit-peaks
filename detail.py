@@ -1,5 +1,6 @@
 from persistence import Persistence
 from activity import Activity
+from ftp import get_ftp
 
 
 def detail_report(id: int):
@@ -70,12 +71,26 @@ def _print_power_data(activity: Activity):
         activity: The activity to print power data for.
     """
 
+    # Calculate some power details
+    # Taken from https://medium.com/critical-powers/formulas-from-training-and-racing-with-a-power-meter-2a295c661b46
+    ftp = get_ftp(activity.start_time)
     variability_index = format(activity.normalised_power / activity.avg_power, ".2f")
+    intensity_factor = activity.normalised_power / ftp
+    intensity_factor_text = format(intensity_factor, ".2f")
+    duration_in_seconds = (activity.end_time - activity.start_time).seconds
+    tss = (duration_in_seconds * activity.normalised_power * intensity_factor) / (ftp * 36)
+    tss_text = format(tss, ".0f")
+
     print("")
     print(f"Average power ....... {int(activity.avg_power)}W")
     print(f"Maximum power ....... {activity.max_power}W")
     print(f"Normalised power .... {int(activity.normalised_power)}W")
     print(f"Variability index ... {variability_index}")
+    print("")
+    print(f"FTP ................. {ftp}W")
+    print(f"Intensity factor .... {intensity_factor_text}")
+    print(f"TSS ................. {tss_text}")
+
 
 def _print_hr_data(activity: Activity):
     """
