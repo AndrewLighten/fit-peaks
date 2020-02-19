@@ -1,6 +1,7 @@
 from calculation_data import AerobicDecoupling
 
-def format_aero_decoupling(*, aerobic_decoupling: AerobicDecoupling, width: int=0) -> str:
+
+def format_aero_decoupling(*, aerobic_decoupling: AerobicDecoupling, width: int = 0) -> str:
     """
     Format a representation of the aerobic decoupling.
     
@@ -13,11 +14,11 @@ def format_aero_decoupling(*, aerobic_decoupling: AerobicDecoupling, width: int=
     """
 
     if not aerobic_decoupling:
-        return "".rjust(width) if width>0 else ""
+        return "".rjust(width) if width > 0 else ""
 
     coupling_text = format(aerobic_decoupling.coupling, ".1f") + "%"
 
-    if width>0:
+    if width > 0:
         coupling_text = coupling_text.rjust(width)
 
     if aerobic_decoupling.coupling < 5:

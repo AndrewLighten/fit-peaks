@@ -2,6 +2,39 @@ from activity import Activity
 from collections import namedtuple
 from typing import List, Optional
 from calculation_data import AerobicDecoupling
+from ftp import get_ftp
+
+
+def calculate_transient_values(activity: Activity):
+    """
+    Calculate the transient values for a specific activity.
+
+    Lots of this logic comes from https://medium.com/critical-powers/formulas-from-training-and-racing-with-a-power-meter-2a295c661b46.
+
+    Args:
+        activity: The activity to calculate the transient values for.
+    """
+
+    # Simple stuff
+    activity.variability_index = activity.normalised_power / activity.avg_power
+    activity.ftp = get_ftp(activity.start_time)
+    activity.intensity_factor = activity.normalised_power / activity.ftp if activity.ftp else 0
+
+    activity.duration_in_seconds = (activity.end_time - activity.start_time).seconds
+    activity.tss = (
+        int((activity.duration_in_seconds * activity.normalised_power * activity.intensity_factor) / (activity.ftp * 36))
+        if activity.ftp
+        else 0
+    )
+
+    distance_in_meters = activity.distance
+    speed_in_ms = distance_in_meters / activity.duration_in_seconds
+    activity.speed_in_kmhr = speed_in_ms * 3600 / 1000
+
+    # Now calculate aerobic decoupling
+    # See https://www.trainingpeaks.com/blog/aerobic-endurance-and-decoupling.
+    if distance_in_meters >= 10000:
+        activity.aerobic_decoupling = calculate_aerobic_decoupling(activity)
 
 
 def calculate_aerobic_decoupling(activity: Activity) -> Optional[AerobicDecoupling]:
@@ -34,7 +67,7 @@ def calculate_aerobic_decoupling(activity: Activity) -> Optional[AerobicDecoupli
     second_half_ratio = _calculate_aerobic_ratio(power=second_half_power, hr=second_half_hr)
     if first_half_ratio is None or second_half_ratio is None:
         return None
-        
+
     # Calculate the decoupling of the two
     coupling = ((first_half_ratio - second_half_ratio) / first_half_ratio) * 100
 

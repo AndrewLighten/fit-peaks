@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List
 from calculation_data import AerobicDecoupling
 
+
 class Activity:
 
     # SQLite row ID

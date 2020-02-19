@@ -2,9 +2,10 @@ from persistence import Persistence
 from activity import Activity
 from ftp import get_ftp
 from typing import List
-from calculations import calculate_aerobic_decoupling
+from calculations import calculate_transient_values
 from calculation_data import AerobicDecoupling
 from formatting import format_aero_decoupling
+
 
 def detail_report(id: int):
     """
@@ -21,7 +22,7 @@ def detail_report(id: int):
         return
 
     # Calculate transient data
-    _calculate_transient_activity_values(activity)
+    calculate_transient_values(activity)
 
     # Print our data
     _print_basic_data(activity)
@@ -121,7 +122,7 @@ def _print_aerobic_decoupling(activity: Activity):
     """
 
     # Find the aerobic decoupling
-    aerobic_decoupling: AerobicDecoupling = calculate_aerobic_decoupling(activity)
+    aerobic_decoupling = activity.aerobic_decoupling
 
     # Format and display
     first_half_text = format(aerobic_decoupling.first_half_ratio, ".2f")
@@ -191,29 +192,3 @@ def _print_peaks(activity: Activity):
     print("           ---------  ---------")
 
 
-def _calculate_transient_activity_values(activity: Activity):
-    """
-    Calculate the transient values for a specific activity.
-    
-    Args:
-        activity: The activity to calculate the transient values for.
-    """
-
-    # Calculate some power details
-    # Taken from https://medium.com/critical-powers/formulas-from-training-and-racing-with-a-power-meter-2a295c661b46
-    activity.variability_index = activity.normalised_power / activity.avg_power
-    activity.ftp = get_ftp(activity.start_time)
-    activity.intensity_factor = activity.normalised_power / activity.ftp if activity.ftp else 0
-
-    activity.duration_in_seconds = (activity.end_time - activity.start_time).seconds
-    activity.tss = (
-        int(
-            (activity.duration_in_seconds * activity.normalised_power * activity.intensity_factor) / (activity.ftp * 36)
-        )
-        if activity.ftp
-        else 0
-    )
-
-    distance_in_meters = activity.distance
-    speed_in_ms = distance_in_meters / activity.duration_in_seconds
-    activity.speed_in_kmhr = speed_in_ms * 3600 / 1000
