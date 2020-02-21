@@ -5,16 +5,16 @@ from typing import List
 from collections import namedtuple, Counter
 from calculations import calculate_transient_values
 from calculation_data import AerobicDecoupling
-from formatting import format_aero_decoupling, format_variability_index
+from formatting import format_aero_decoupling, format_variability_index, LeftRightPrinter
 from datetime import timedelta
 
 PowerZoneDefinition = namedtuple("PowerZoneDefinition", "name upper colour")
 
 POWER_ZONE_DEFINITIONS = [
     PowerZoneDefinition("Active Recovery", 55, "\033[38;5;46m"),
-    PowerZoneDefinition("Endurance", 75,"\033[38;5;148m"),
-    PowerZoneDefinition("Tempo", 90,"\033[38;5;214m"),
-    PowerZoneDefinition("Lactate Threshold", 105, "\033[38;5;208m"),
+    PowerZoneDefinition("Endurance", 74, "\033[38;5;148m"),
+    PowerZoneDefinition("Tempo", 89, "\033[38;5;214m"),
+    PowerZoneDefinition("Lactate Threshold", 104, "\033[38;5;208m"),
     PowerZoneDefinition("VO2Max", 120, "\033[38;5;202m"),
     PowerZoneDefinition("Anaerobic Capacity", 0, "\033[38;5;196m"),
 ]
@@ -22,6 +22,7 @@ POWER_ZONE_DEFINITIONS = [
 PowerZone = namedtuple("PowerZone", "name lower upper colour")
 
 ZoneResult = namedtuple("ZoneResult", "name lower upper colour count")
+
 
 def detail_report(id: int):
     """
@@ -42,11 +43,13 @@ def detail_report(id: int):
 
     # Print our data
     _print_basic_data(activity)
-    _print_power_data(activity)
-    _print_zones(activity)
+    _print_power(activity)
+    # Print heart data
+    _print_hr_data(activity)
+
+    # Finish off
     if activity.aerobic_decoupling:
         _print_aerobic_decoupling(activity)
-    _print_hr_data(activity)
     _print_peaks(activity)
 
     # Done
@@ -89,7 +92,20 @@ def _print_basic_data(activity: Activity):
     print(f"    Elevation gain ...... {elevation}")
 
 
-def _print_power_data(activity: Activity):
+def _print_power(activity: Activity):
+    """
+    Print the power information for an activity.
+    
+    Args:
+        activity: The activity to print power information for.
+    """
+    lrp = LeftRightPrinter(left_width=60)
+    _print_power_data(activity, lrp)
+    _print_power_zones(activity, lrp)
+    lrp.print()
+
+
+def _print_power_data(activity: Activity, lrp: LeftRightPrinter):
     """
     Print the power data we have for an activity.
     
@@ -101,18 +117,62 @@ def _print_power_data(activity: Activity):
     intensity_factor_text = format(activity.intensity_factor, ".2f")
     tss_text = str(activity.tss)
 
-    print("")
-    print("\033[34m\033[1mPower data\033[0m")
-    print("")
-    print(f"    Average ............. {int(activity.avg_power)}W")
-    print(f"    Maximum ............. {activity.max_power}W")
-    print(f"    Normalised .......... {int(activity.normalised_power)}W")
+    lrp.add_left("")
+    lrp.add_left("\033[34m\033[1mPower data\033[0m")
+    lrp.add_left("")
+    lrp.add_left(f"    Average ............. {int(activity.avg_power)}W")
+    lrp.add_left(f"    Maximum ............. {activity.max_power}W")
+    lrp.add_left(f"    Normalised .......... {int(activity.normalised_power)}W")
     if variability_index_text:
-        print(f"    Variability index ... {variability_index_text}")
-    print("")
-    print(f"    FTP ................. {activity.ftp}W")
-    print(f"    Intensity factor .... {intensity_factor_text}")
-    print(f"    TSS ................. {tss_text}")
+        lrp.add_left(f"    Variability index ... {variability_index_text}")
+    lrp.add_left("")
+    lrp.add_left(f"    FTP ................. {activity.ftp}W")
+    lrp.add_left(f"    Intensity factor .... {intensity_factor_text}")
+    lrp.add_left(f"    TSS ................. {tss_text}")
+
+
+def _print_power_zones(activity: Activity, lrp: LeftRightPrinter):
+
+    # First calculate the actual zones
+    zones = _calculate_zones(activity)
+
+    # Now count the number of power values in each zone
+    distribution = Counter(activity.raw_power)
+
+    # Now go through each zone and count the number of power values in that zone
+    zone_results: List[ZoneResult] = []
+
+    for zone in zones:
+        count = 0
+        for power in range(zone.lower, zone.upper + 1 if zone.upper else activity.max_power + 1):
+            count += distribution[power]
+        zone_results.append(
+            ZoneResult(name=zone.name, lower=zone.lower, upper=zone.upper, colour=zone.colour, count=count)
+        )
+
+    # Print the result
+    lrp.add_right()
+    lrp.add_right("\033[34m\033[1mPower zones\033[0m")
+    lrp.add_right("")
+
+    lrp.add_right("    Zone                    Watts    Duration     Pct%   Histogram")
+    lrp.add_right("    --------------------   -------   --------   ------   " + ("-" * 100))
+
+    for result in zone_results:
+        lower = str(result.lower).rjust(3)
+        upper = str(
+            result.upper if result.upper else activity.max_power if activity.max_power >= result.lower else ""
+        ).rjust(3)
+        sep = "-" if upper.strip() else "+"
+        pct = (result.count / activity.duration_in_seconds) * 100
+        pct_text = format(pct, ".1f").rjust(6)
+        duration = str(timedelta(seconds=result.count)).rjust(8)
+        bar = "█" * int(pct)
+        lrp.add_right(
+            f"    {result.name:20}   {lower}{sep}{upper}   {duration}  {pct_text}%   {result.colour}{bar}\033[0m"
+        )
+
+    lrp.add_right("    --------------------   -------   --------   ------   " + ("-" * 100))
 
 
 def _print_hr_data(activity: Activity):
@@ -211,43 +271,6 @@ def _print_peaks(activity: Activity):
         print(f"    120 min{p120min}  {hr120min}")
     print("           ---------  ---------")
 
-
-def _print_zones(activity: Activity):
-
-    # First calculate the actual zones
-    zones = _calculate_zones(activity)
-
-    # Now count the number of power values in each zone
-    distribution = Counter(activity.raw_power)
-
-    # Now go through each zone and count the number of power values in that zone
-    zone_results: List[ZoneResult] = []
-
-    for zone in zones:
-        count = 0
-        for power in range(zone.lower, zone.upper+1 if zone.upper else activity.max_power+1):
-            count += distribution[power]
-        zone_results.append(ZoneResult(name=zone.name, lower=zone.lower, upper=zone.upper, colour=zone.colour, count=count))
-
-    # Print the result
-    print()
-    print("\033[34m\033[1mPower zones\033[0m")
-    print("")
-
-    print("    Zone                   Range:W   Duration     Pct%   Histogram")
-    print("    --------------------   -------   --------   ------   " + ("-"*100))
-
-    for result in zone_results:
-        lower = str(result.lower).rjust(3)
-        upper = str(result.upper if result.upper else activity.max_power if activity.max_power >= result.lower else "").rjust(3)
-        sep = "-" if upper.strip() else "+"
-        pct = (result.count / activity.duration_in_seconds) * 100
-        pct_text = format(pct, ".1f").rjust(6)
-        duration = str(timedelta(seconds=result.count)).rjust(8)
-        bar = "█" * int(pct)
-        print(f"    {result.name:20}   {lower}{sep}{upper}   {duration}  {pct_text}%   {result.colour}{bar}\033[0m")
-
-    print("    --------------------   -------   --------   ------   " + ("-"*100))
 
 def _calculate_zones(activity: Activity) -> List[PowerZone]:
     """
