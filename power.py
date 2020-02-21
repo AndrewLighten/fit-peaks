@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from persistence import Persistence
 from activity import Activity
-from ftp import get_ftp
+from athlete import get_ftp
 from calculations import calculate_transient_values
 from calculation_data import AerobicDecoupling
 from formatting import format_aero_decoupling, format_variability_index

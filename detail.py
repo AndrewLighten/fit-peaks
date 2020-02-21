@@ -1,6 +1,6 @@
 from persistence import Persistence
 from activity import Activity
-from ftp import get_ftp
+from athlete import get_ftp, get_hr
 from typing import List
 from collections import namedtuple, Counter
 from calculations import calculate_transient_values
@@ -8,18 +8,28 @@ from calculation_data import AerobicDecoupling
 from formatting import format_aero_decoupling, format_variability_index, LeftRightPrinter
 from datetime import timedelta
 
-PowerZoneDefinition = namedtuple("PowerZoneDefinition", "name upper colour")
+ZoneDefinition = namedtuple("PowerZoneDefinition", "name upper colour")
 
 POWER_ZONE_DEFINITIONS = [
-    PowerZoneDefinition("Active Recovery", 55, "\033[38;5;46m"),
-    PowerZoneDefinition("Endurance", 74, "\033[38;5;148m"),
-    PowerZoneDefinition("Tempo", 89, "\033[38;5;214m"),
-    PowerZoneDefinition("Lactate Threshold", 104, "\033[38;5;208m"),
-    PowerZoneDefinition("VO2Max", 120, "\033[38;5;202m"),
-    PowerZoneDefinition("Anaerobic Capacity", 0, "\033[38;5;196m"),
+    ZoneDefinition("Zone 1  - Recovery", 55, "\033[38;5;46m"),
+    ZoneDefinition("Zone 2  - Endurance", 75, "\033[38;5;148m"),
+    ZoneDefinition("Zone 3  - Tempo", 90, "\033[38;5;142m"),
+    ZoneDefinition("Zone 4  - Sub-threshold", 100, "\033[38;5;178m"),
+    ZoneDefinition("Zone 5a - Super-threshold", 105, "\033[38;5;214m"),
+    ZoneDefinition("Zone 5b - VO2 max", 120, "\033[38;5;208m"),
+    ZoneDefinition("Zone 5c - Anaerobic", 150, "\033[38;5;202m"),
+    ZoneDefinition("Zone 6  - Neuromuscular power", 0, "\033[38;5;196m"),
 ]
 
-PowerZone = namedtuple("PowerZone", "name lower upper colour")
+HEART_ZONE_DEFINITIONS = [
+    ZoneDefinition("Zone 1 - Recovery", 68, "\033[38;5;46m"),
+    ZoneDefinition("Zone 2 - Aerobic capacity", 83.5, "\033[38;5;148m"),
+    ZoneDefinition("Zone 3 - Tempo", 94.5, "\033[38;5;214m"),
+    ZoneDefinition("Zone 4 - Threshold", 105.5, "\033[38;5;208m"),
+    ZoneDefinition("Zone 5 - VO2 max", 0, "\033[38;5;202m"),
+]
+
+CalculatedZone = namedtuple("PowerZone", "name lower upper colour")
 
 ZoneResult = namedtuple("ZoneResult", "name lower upper colour count")
 
@@ -44,8 +54,7 @@ def detail_report(id: int):
     # Print our data
     _print_basic_data(activity)
     _print_power(activity)
-    # Print heart data
-    _print_hr_data(activity)
+    _print_heart(activity)
 
     # Finish off
     if activity.aerobic_decoupling:
@@ -80,6 +89,9 @@ def _print_basic_data(activity: Activity):
     print(f"    Date ................ {date}")
     print(f"    Time ................ {start} to {end}")
     print(f"    Duration ............ {duration}")
+    if activity.duration_in_seconds - activity.moving_seconds > 10:
+        moving = str(timedelta(seconds=activity.moving_seconds)).rjust(8)
+        print(f"    Moving time ......... {moving}")
 
     # Distances
     distance = format(round(activity.distance / 1000, 2), ".2f") + "km"
@@ -134,7 +146,7 @@ def _print_power_data(activity: Activity, lrp: LeftRightPrinter):
 def _print_power_zones(activity: Activity, lrp: LeftRightPrinter):
 
     # First calculate the actual zones
-    zones = _calculate_zones(activity)
+    zones = _calculate_power_zones(activity)
 
     # Now count the number of power values in each zone
     distribution = Counter(activity.raw_power)
@@ -152,41 +164,97 @@ def _print_power_zones(activity: Activity, lrp: LeftRightPrinter):
 
     # Print the result
     lrp.add_right()
-    lrp.add_right("\033[34m\033[1mPower zones\033[0m")
+    lrp.add_right(f"\033[34m\033[1mPower zones (FTP={activity.ftp}W)\033[0m")
     lrp.add_right("")
 
-    lrp.add_right("    Zone                    Watts    Duration     Pct%   Histogram")
-    lrp.add_right("    --------------------   -------   --------   ------   " + ("-" * 100))
+    lrp.add_right("    Zone                              Watts    Duration     Pct%   Histogram")
+    lrp.add_right("    ──────────────────────────────   ───────   ────────   ──────   " + ("─" * 100))
 
     for result in zone_results:
         lower = str(result.lower).rjust(3)
-        upper = str(
-            result.upper if result.upper else activity.max_power if activity.max_power >= result.lower else ""
-        ).rjust(3)
+        upper = str(result.upper if result.upper else "").rjust(3)
         sep = "-" if upper.strip() else "+"
-        pct = (result.count / activity.duration_in_seconds) * 100
+        pct = (result.count / (activity.duration_in_seconds + 1)) * 100
         pct_text = format(pct, ".1f").rjust(6)
         duration = str(timedelta(seconds=result.count)).rjust(8)
         bar = "█" * int(pct)
         lrp.add_right(
-            f"    {result.name:20}   {lower}{sep}{upper}   {duration}  {pct_text}%   {result.colour}{bar}\033[0m"
+            f"    {result.name:30}   {lower}{sep}{upper}   {duration}  {pct_text}%   {result.colour}{bar}\033[0m"
         )
 
-    lrp.add_right("    --------------------   -------   --------   ------   " + ("-" * 100))
+    lrp.add_right("    ──────────────────────────────   ───────   ────────   ──────   " + ("─" * 100))
 
 
-def _print_hr_data(activity: Activity):
+def _print_heart(activity: Activity):
+    """
+    Print the heart information for an activity.
+    
+    Args:
+        activity: The activity to print heart information for.
+    """
+    lrp = LeftRightPrinter(left_width=60)
+    _print_hr_data(activity, lrp)
+    _print_hr_zones(activity, lrp)
+    lrp.print()
+
+
+def _print_hr_data(activity: Activity, lrp: LeftRightPrinter):
     """
     Print the HR data we have for an activity.
     
     Args:
         activity: The activity to print HR data for.
     """
-    print("")
-    print("\033[34m\033[1mHeart data\033[0m")
-    print("")
-    print(f"    Average ............. {int(activity.avg_hr)} bpm")
-    print(f"    Maximum ............. {activity.max_hr} bpm")
+    lrp.add_left("")
+    lrp.add_left("\033[34m\033[1mHeart data\033[0m")
+    lrp.add_left("")
+    lrp.add_left(f"    Average ............. {int(activity.avg_hr)} bpm")
+    lrp.add_left(f"    Maximum ............. {activity.max_hr} bpm")
+
+
+def _print_hr_zones(activity: Activity, lrp: LeftRightPrinter):
+
+    # First calculate the actual zones
+    zones = _calculate_hr_zones(activity)
+
+    # Now count the number of power values in each zone
+    distribution = Counter(activity.raw_hr)
+
+    # Now go through each zone and count the number of power values in that zone
+    zone_results: List[ZoneResult] = []
+
+    for zone in zones:
+        count = 0
+        for power in range(zone.lower, zone.upper + 1 if zone.upper else activity.max_power + 1):
+            count += distribution[power]
+        zone_results.append(
+            ZoneResult(name=zone.name, lower=zone.lower, upper=zone.upper, colour=zone.colour, count=count)
+        )
+
+    # Find max HR
+    threshold_hr = get_hr(activity.start_time)[1]
+
+    # Print the result
+    lrp.add_right()
+    lrp.add_right(f"\033[34m\033[1mHeart zones (LTHR={threshold_hr}bpm)\033[0m")
+    lrp.add_right("")
+
+    lrp.add_right("    Zone                               BPM     Duration     Pct%   Histogram")
+    lrp.add_right("    ──────────────────────────────   ───────   ────────   ──────   " + ("─" * 100))
+
+    for result in zone_results:
+        lower = str(result.lower).rjust(3)
+        upper = str(result.upper if result.upper else "").rjust(3)
+        sep = "-" if upper.strip() else "+"
+        pct = round((result.count / (activity.duration_in_seconds + 1)) * 100, 1)
+        pct_text = format(pct, ".1f").rjust(6)
+        duration = str(timedelta(seconds=result.count)).rjust(8)
+        bar = "█" * int(pct)
+        lrp.add_right(
+            f"    {result.name:30}   {lower}{sep}{upper}   {duration}  {pct_text}%   {result.colour}{bar}\033[0m"
+        )
+
+    lrp.add_right("    ──────────────────────────────   ───────   ────────   ──────   " + ("─" * 100))
 
 
 def _print_aerobic_decoupling(activity: Activity):
@@ -251,7 +319,7 @@ def _print_peaks(activity: Activity):
     print("\033[34m\033[1mPeaks\033[0m")
     print("")
     print("           Power (W)   HR (bpm)")
-    print("           ---------  ---------")
+    print("           ─────────  ─────────")
     print(f"    5 sec  {p5sec}  {hr5sec}")
     print(f"    30 sec {p30sec}  {hr30sec}")
     print(f"    60 sec {p60sec}  {hr60sec}")
@@ -269,10 +337,10 @@ def _print_peaks(activity: Activity):
         print(f"    90 min {p90min}  {hr90min}")
     if activity.peak_120min_power or activity.peak_120min_hr:
         print(f"    120 min{p120min}  {hr120min}")
-    print("           ---------  ---------")
+    print("           ─────────  ─────────")
 
 
-def _calculate_zones(activity: Activity) -> List[PowerZone]:
+def _calculate_power_zones(activity: Activity) -> List[CalculatedZone]:
     """
     Given an activity, determine what the various power zones are.
     
@@ -285,10 +353,10 @@ def _calculate_zones(activity: Activity) -> List[PowerZone]:
     """
 
     # Initialise list of zones
-    zones: List[PowerZone] = []
+    zones: List[CalculatedZone] = []
 
     # Visit each zone definition and calculate the power range it represents
-    last_zone: PowerZone = None
+    last_zone: CalculatedZone = None
     for zone_def in POWER_ZONE_DEFINITIONS:
 
         # Lower is the last zone's upper limit, plus one
@@ -298,7 +366,33 @@ def _calculate_zones(activity: Activity) -> List[PowerZone]:
         upper = int(activity.ftp * zone_def.upper / 100)
 
         # Create the zone, and add to the list
-        last_zone = PowerZone(name=zone_def.name, lower=lower, upper=upper, colour=zone_def.colour)
+        last_zone = CalculatedZone(name=zone_def.name, lower=lower, upper=upper, colour=zone_def.colour)
+        zones.append(last_zone)
+
+    # Done
+    return zones
+
+
+def _calculate_hr_zones(activity: Activity) -> List[CalculatedZone]:
+
+    # Initialise list of zones
+    zones: List[CalculatedZone] = []
+
+    # Find the athlete's threshold heart rate at the time of the exercise
+    threshold_hr = get_hr(activity.start_time)[1]
+
+    # Visit each zone definition and calculate the power range it represents
+    last_zone: CalculatedZone = None
+    for zone_def in HEART_ZONE_DEFINITIONS:
+
+        # Lower is the last zone's upper limit, plus one
+        lower = last_zone.upper + 1 if last_zone else 0
+
+        # Upper we'll calculate
+        upper = int(threshold_hr * zone_def.upper / 100)
+
+        # Create the zone, and add to the list
+        last_zone = CalculatedZone(name=zone_def.name, lower=lower, upper=upper, colour=zone_def.colour)
         zones.append(last_zone)
 
     # Done

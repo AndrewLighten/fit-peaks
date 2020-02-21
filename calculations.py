@@ -2,7 +2,7 @@ from activity import Activity
 from collections import namedtuple
 from typing import List, Optional
 from calculation_data import AerobicDecoupling
-from ftp import get_ftp
+from athlete import get_ftp
 
 
 def calculate_transient_values(activity: Activity):
@@ -22,6 +22,7 @@ def calculate_transient_values(activity: Activity):
     activity.intensity_factor = activity.normalised_power / activity.ftp if activity.ftp else 0
 
     activity.duration_in_seconds = (activity.end_time - activity.start_time).seconds
+    activity.moving_seconds = len(activity.raw_power)
     activity.tss = (
         int(
             (activity.duration_in_seconds * activity.normalised_power * activity.intensity_factor) / (activity.ftp * 36)
@@ -31,14 +32,13 @@ def calculate_transient_values(activity: Activity):
     )
 
     distance_in_meters = activity.distance
-    speed_in_ms = distance_in_meters / activity.duration_in_seconds
+    speed_in_ms = distance_in_meters / activity.moving_seconds
     activity.speed_in_kmhr = speed_in_ms * 3600 / 1000
 
     # Now calculate aerobic decoupling
     # See https://www.trainingpeaks.com/blog/aerobic-endurance-and-decoupling.
     if distance_in_meters >= 10000:
         activity.aerobic_decoupling = calculate_aerobic_decoupling(activity)
-
 
 def calculate_aerobic_decoupling(activity: Activity) -> Optional[AerobicDecoupling]:
     """
