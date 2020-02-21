@@ -14,15 +14,18 @@ def calculate_transient_values(activity: Activity):
     Args:
         activity: The activity to calculate the transient values for.
     """
-
     # Simple stuff
-    activity.variability_index = activity.normalised_power / activity.avg_power
+    activity.variability_index = round(
+        ((activity.normalised_power - activity.avg_power) / activity.normalised_power) * 100, 0
+    )
     activity.ftp = get_ftp(activity.start_time)
     activity.intensity_factor = activity.normalised_power / activity.ftp if activity.ftp else 0
 
     activity.duration_in_seconds = (activity.end_time - activity.start_time).seconds
     activity.tss = (
-        int((activity.duration_in_seconds * activity.normalised_power * activity.intensity_factor) / (activity.ftp * 36))
+        int(
+            (activity.duration_in_seconds * activity.normalised_power * activity.intensity_factor) / (activity.ftp * 36)
+        )
         if activity.ftp
         else 0
     )

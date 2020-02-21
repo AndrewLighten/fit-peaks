@@ -146,7 +146,7 @@ def _print_header():
     """
     print()
     print(
-        "                                                                                                                                                        ───────────────────────┨ Measurements in BPM ┠─────────────────────"
+        "                                                                                                                                                        ┌─────────────────────── Measurements in BPM ─────────────────────┐"
     )
     print(
         "ID      Date               Activity                                                                           Distance   Elevation   Start   Duration     5s    30s    60s     5m    10m    20m    30m    60m    90m   120m"
@@ -257,7 +257,7 @@ def _print_summary(max: Dict[str, List[int]]):
     # Print the result.
     print()
     print(
-        "                                                                                                                                                        ───────────────────────┨ Measurements in BPM ┠─────────────────────"
+        "                                                                                                                                                        ┌─────────────────────── Measurements in BPM ─────────────────────┐"
     )
     print(
         "                                                                                                                                                          5s    30s    60s     5m    10m    20m    30m    60m    90m   120m"
