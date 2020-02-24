@@ -54,6 +54,7 @@ class Activity:
 
     # Transient values
     duration_in_seconds: int = None
+    moving_seconds: int = None
     variability_index: float = None
     ftp: int = None
     intensity_factor: float = None

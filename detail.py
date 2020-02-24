@@ -276,7 +276,7 @@ def _print_aerobic_decoupling(activity: Activity):
     coupling_text = format_aero_decoupling(aerobic_decoupling=aerobic_decoupling, width=0)
 
     print("")
-    print("\033[34m\033[1mAerobic coupling\033[0m")
+    print("\033[34m\033[1mAerobic decoupling\033[0m")
     print("")
     print(f"    Overall ............. {coupling_text}")
     print(f"    First half .......... {first_half_text} (pAvg:hrAvg)")

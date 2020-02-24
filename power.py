@@ -95,10 +95,14 @@ def power_report():
                 week_120min_average = []
 
             _print_header()
+            any_data_since_header = False
 
         # Capture the weekday.
         if current_weekday is None or current_weekday != activity.start_time.weekday():
             week_work_days = week_work_days + 1
+            new_day = True
+            if any_data_since_header:
+                print()
 
         current_weekday = activity.start_time.weekday()
 
@@ -108,7 +112,9 @@ def power_report():
         prevailing_ftp = activity_ftp
 
         # Print the detail.
-        _print_detail(activity=activity, max=max, new_ftp=new_ftp)
+        _print_detail(activity=activity, max=max, new_ftp=new_ftp, new_day=new_day)
+        new_day = False
+        any_data_since_header = True
 
         # Find the duration.
         duration = activity.end_time - activity.start_time
@@ -174,14 +180,14 @@ def _print_header():
     _print_separator()
 
 
-def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: bool):
+def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: bool, new_day: bool):
     """
     Print the detail for a particular activity.
     """
 
     # Find the ID, date, start time, and duration.
     rowid = format(activity.rowid, "<5d")
-    date = activity.start_time.strftime("%a %d %b, %Y")
+    date = activity.start_time.strftime("%a %d %b, %Y") if new_day else '                '
     start = activity.start_time.strftime("%H:%M")
     duration = str(activity.end_time - activity.start_time).rjust(8)
 
