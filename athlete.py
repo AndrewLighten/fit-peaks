@@ -23,6 +23,14 @@ class AthleteData:
 ATHLETE_DATA_LIST: List[AthleteData] = []
 
 
+@dataclass
+class HeartRateData:
+
+    rest_heart_rate: int
+    threshold_heart_rate: int
+    max_heart_rate: int
+
+
 def get_ftp(when: datetime) -> Optional[int]:
     """
     Get the FTP value that is in effect for a particular date.
@@ -38,7 +46,7 @@ def get_ftp(when: datetime) -> Optional[int]:
     return athlete_data.ftp if athlete_data else None
 
 
-def get_hr(when: datetime) -> Optional[Tuple[int, int, int]]:
+def get_hr(when: datetime) -> Optional[HeartRateData]:
     """
     Get the athlete's resting and maximum heart rate that is in effect for
     a particular date.
@@ -47,15 +55,16 @@ def get_hr(when: datetime) -> Optional[Tuple[int, int, int]]:
         when: The date we want heart rate data for.
 
     Returns:
-        Tuple of (resting heart rate, threshold heart rate, maximum heart rate) in effect for the
-        nominated date, if any.
+        The athlete's heart rate data.
     """
 
-    athlete_data = _get_applicable_entry(when)
-    return (
-        (athlete_data.rest_heart_rate, athlete_data.threshold_heart_rate, athlete_data.max_heart_rate)
-        if athlete_data
-        else None
+    if not (athlete_data := _get_applicable_entry(when)):
+        return None
+
+    return HeartRateData(
+        rest_heart_rate=athlete_data.rest_heart_rate,
+        threshold_heart_rate=athlete_data.threshold_heart_rate,
+        max_heart_rate=athlete_data.max_heart_rate,
     )
 
 

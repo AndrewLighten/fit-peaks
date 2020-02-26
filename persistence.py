@@ -2,7 +2,7 @@ import sqlite3
 import os.path
 from enum import Enum, auto
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, date
 from dateutil import tz
 from typing import Optional, List, Tuple
 
@@ -110,6 +110,8 @@ class SelectIndices(Enum):
 
 
 SELECT_ALL = SELECT + " where peak_60sec_power is not null order by start_time"
+
+SELECT_FROM_DATE = SELECT + " where peak_60sec_power is not null and start_time >= :start_date order by start_time"
 
 INSERT_SQL = """
     insert into activity 
@@ -238,6 +240,18 @@ class Persistence:
         cursor = self.conn.cursor()
         try:
             cursor.execute(SELECT_ALL)
+            records = cursor.fetchall()
+            activities = []
+            for record in records:
+                activities.append(self._create_activity(record=record))
+            return activities
+        finally:
+            cursor.close()
+
+    def load_for_week(self, start_date: date) -> List[Activity]:
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute(SELECT_FROM_DATE, {"start_date": start_date})
             records = cursor.fetchall()
             activities = []
             for record in records:

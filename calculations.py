@@ -40,6 +40,7 @@ def calculate_transient_values(activity: Activity):
     if distance_in_meters >= 10000:
         activity.aerobic_decoupling = calculate_aerobic_decoupling(activity)
 
+
 def calculate_aerobic_decoupling(activity: Activity) -> Optional[AerobicDecoupling]:
     """
     Calculate the aerobic decoupling for an activity.

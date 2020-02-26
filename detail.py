@@ -1,6 +1,6 @@
 from persistence import Persistence
 from activity import Activity
-from athlete import get_ftp, get_hr
+from athlete import get_ftp, get_hr, HeartRateData
 from typing import List
 from collections import namedtuple, Counter
 from calculations import calculate_transient_values
@@ -232,7 +232,7 @@ def _print_hr_zones(activity: Activity, lrp: LeftRightPrinter):
         )
 
     # Find max HR
-    threshold_hr = get_hr(activity.start_time)[1]
+    threshold_hr = get_hr(activity.start_time).threshold_heart_rate
 
     # Print the result
     lrp.add_right()
@@ -379,7 +379,7 @@ def _calculate_hr_zones(activity: Activity) -> List[CalculatedZone]:
     zones: List[CalculatedZone] = []
 
     # Find the athlete's threshold heart rate at the time of the exercise
-    threshold_hr = get_hr(activity.start_time)[1]
+    threshold_hr = get_hr(activity.start_time).threshold_heart_rate
 
     # Visit each zone definition and calculate the power range it represents
     last_zone: CalculatedZone = None
