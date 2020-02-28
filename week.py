@@ -66,6 +66,13 @@ def week_report():
     _print_header()
     _print_activity_details(activities, weekly_totals)
     _print_week_summary(weekly_totals)
+
+    # Get all activities, then calculate and print fitness
+    fitness_date = (datetime.datetime.now() - datetime.timedelta(days=42)).date()
+    if (all_activities := db.load_for_week(start_date=fitness_date)) :
+        fitness: calculation_data.Fitness = calculations.calculate_fitness(activities=all_activities)
+        _print_fitness(fitness)
+
     _print_footer()
 
 
@@ -259,6 +266,13 @@ def _print_week_summary(weekly_totals: WeeklyTotals):
     print(f"\x1B[1m                                                                                            Totals for week           {total_distance}       {total_elevation}   {total_duration}                                                 {total_tss}\x1B[0m")
     print(f"\x1B[1m                                                                                           Averages per day           {avg_distance}       {avg_elevation}   {avg_duration}                                                 {avg_tss}\x1B[0m")
     print(f"\x1B[1m                                                                        Maximums from individual activities           {max_distance}       {max_elevation}   {max_duration}   {max_speed}   {max_pmax}   {max_pavg}   {max_pnor}        {max_if}   {max_tss}\x1B[0m")
+
+
+def _print_fitness(fitness: calculation_data.Fitness):
+    print("")
+    print(f"\x1B[1mCTL: Critical training load (42 day TSS average) .... {fitness.ctl}\x1B[0m")
+    print(f"\x1B[1mATL: Acute training load (7 day TSS average) ........ {fitness.atl}\x1B[0m")
+    print(f"\x1B[1mTSB: Training stress balance (CTL-ATL) .............. {fitness.tsb}\x1B[0m")
 
 
 def _calculate_transient_values(activities: typing.List[Activity]):
