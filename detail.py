@@ -11,22 +11,22 @@ from datetime import timedelta
 ZoneDefinition = namedtuple("PowerZoneDefinition", "name upper colour")
 
 POWER_ZONE_DEFINITIONS = [
-    ZoneDefinition("Zone 1  - Recovery", 55, "\033[38;5;46m"),
-    ZoneDefinition("Zone 2  - Endurance", 75, "\033[38;5;148m"),
-    ZoneDefinition("Zone 3  - Tempo", 90, "\033[38;5;142m"),
-    ZoneDefinition("Zone 4  - Sub-threshold", 100, "\033[38;5;178m"),
-    ZoneDefinition("Zone 5a - Super-threshold", 105, "\033[38;5;214m"),
-    ZoneDefinition("Zone 5b - VO2 max", 120, "\033[38;5;208m"),
-    ZoneDefinition("Zone 5c - Anaerobic", 150, "\033[38;5;202m"),
-    ZoneDefinition("Zone 6  - Neuromuscular power", 0, "\033[38;5;196m"),
+    ZoneDefinition("Zone 1  - Recovery", 55, "\x1B[38;5;46m"),
+    ZoneDefinition("Zone 2  - Endurance", 75, "\x1B[38;5;148m"),
+    ZoneDefinition("Zone 3  - Tempo", 90, "\x1B[38;5;142m"),
+    ZoneDefinition("Zone 4  - Sub-threshold", 100, "\x1B[38;5;178m"),
+    ZoneDefinition("Zone 5a - Super-threshold", 105, "\x1B[38;5;214m"),
+    ZoneDefinition("Zone 5b - VO2 max", 120, "\x1B[38;5;208m"),
+    ZoneDefinition("Zone 5c - Anaerobic", 150, "\x1B[38;5;202m"),
+    ZoneDefinition("Zone 6  - Neuromuscular power", 0, "\x1B[38;5;196m"),
 ]
 
 HEART_ZONE_DEFINITIONS = [
-    ZoneDefinition("Zone 1 - Recovery", 68, "\033[38;5;46m"),
-    ZoneDefinition("Zone 2 - Aerobic capacity", 83.5, "\033[38;5;148m"),
-    ZoneDefinition("Zone 3 - Tempo", 94.5, "\033[38;5;214m"),
-    ZoneDefinition("Zone 4 - Threshold", 105.5, "\033[38;5;208m"),
-    ZoneDefinition("Zone 5 - VO2 max", 0, "\033[38;5;202m"),
+    ZoneDefinition("Zone 1 - Recovery", 68, "\x1B[38;5;46m"),
+    ZoneDefinition("Zone 2 - Aerobic capacity", 83.5, "\x1B[38;5;148m"),
+    ZoneDefinition("Zone 3 - Tempo", 94.5, "\x1B[38;5;214m"),
+    ZoneDefinition("Zone 4 - Threshold", 105.5, "\x1B[38;5;208m"),
+    ZoneDefinition("Zone 5 - VO2 max", 0, "\x1B[38;5;202m"),
 ]
 
 CalculatedZone = namedtuple("PowerZone", "name lower upper colour")
@@ -75,7 +75,7 @@ def _print_basic_data(activity: Activity):
 
     # Activity ID and name
     print("")
-    print(f"Activity #{activity.rowid}: \033[32m\033[1m{activity.activity_name}\033[0m")
+    print(f"Activity #{activity.rowid}: \x1B[32m\x1B[1m{activity.activity_name}\x1B[0m")
 
     # Date, time, duration
     date = activity.start_time.strftime("%A %d %B, %Y")
@@ -84,7 +84,7 @@ def _print_basic_data(activity: Activity):
     duration = str(activity.end_time - activity.start_time).rjust(8)
 
     print()
-    print("\033[34m\033[1mBasic statistics\033[0m")
+    print("\x1B[34m\x1B[1mBasic statistics\x1B[0m")
     print("")
     print(f"    Date ................ {date}")
     print(f"    Time ................ {start} to {end}")
@@ -130,7 +130,7 @@ def _print_power_data(activity: Activity, lrp: LeftRightPrinter):
     tss_text = str(activity.tss)
 
     lrp.add_left("")
-    lrp.add_left("\033[34m\033[1mPower data\033[0m")
+    lrp.add_left("\x1B[34m\x1B[1mPower data\x1B[0m")
     lrp.add_left("")
     lrp.add_left(f"    Average ............. {int(activity.avg_power)}W")
     lrp.add_left(f"    Maximum ............. {activity.max_power}W")
@@ -158,13 +158,11 @@ def _print_power_zones(activity: Activity, lrp: LeftRightPrinter):
         count = 0
         for power in range(zone.lower, zone.upper + 1 if zone.upper else activity.max_power + 1):
             count += distribution[power]
-        zone_results.append(
-            ZoneResult(name=zone.name, lower=zone.lower, upper=zone.upper, colour=zone.colour, count=count)
-        )
+        zone_results.append(ZoneResult(name=zone.name, lower=zone.lower, upper=zone.upper, colour=zone.colour, count=count))
 
     # Print the result
     lrp.add_right()
-    lrp.add_right(f"\033[34m\033[1mPower zones (FTP={activity.ftp}W)\033[0m")
+    lrp.add_right(f"\x1B[34m\x1B[1mPower zones (FTP={activity.ftp}W)\x1B[0m")
     lrp.add_right("")
 
     lrp.add_right("    Zone                              Watts    Duration     Pct%   Histogram")
@@ -178,9 +176,7 @@ def _print_power_zones(activity: Activity, lrp: LeftRightPrinter):
         pct_text = format(pct, ".1f").rjust(6)
         duration = str(timedelta(seconds=result.count)).rjust(8)
         bar = "█" * int(pct)
-        lrp.add_right(
-            f"    {result.name:30}   {lower}{sep}{upper}   {duration}  {pct_text}%   {result.colour}{bar}\033[0m"
-        )
+        lrp.add_right(f"    {result.name:30}   {lower}{sep}{upper}   {duration}  {pct_text}%   {result.colour}{bar}\x1B[0m")
 
     lrp.add_right("    ──────────────────────────────   ───────   ────────   ──────   " + ("─" * 100))
 
@@ -206,7 +202,7 @@ def _print_hr_data(activity: Activity, lrp: LeftRightPrinter):
         activity: The activity to print HR data for.
     """
     lrp.add_left("")
-    lrp.add_left("\033[34m\033[1mHeart data\033[0m")
+    lrp.add_left("\x1B[34m\x1B[1mHeart data\x1B[0m")
     lrp.add_left("")
     lrp.add_left(f"    Average ............. {int(activity.avg_hr)} bpm")
     lrp.add_left(f"    Maximum ............. {activity.max_hr} bpm")
@@ -227,16 +223,14 @@ def _print_hr_zones(activity: Activity, lrp: LeftRightPrinter):
         count = 0
         for power in range(zone.lower, zone.upper + 1 if zone.upper else activity.max_power + 1):
             count += distribution[power]
-        zone_results.append(
-            ZoneResult(name=zone.name, lower=zone.lower, upper=zone.upper, colour=zone.colour, count=count)
-        )
+        zone_results.append(ZoneResult(name=zone.name, lower=zone.lower, upper=zone.upper, colour=zone.colour, count=count))
 
     # Find max HR
     threshold_hr = get_hr(activity.start_time).threshold_heart_rate
 
     # Print the result
     lrp.add_right()
-    lrp.add_right(f"\033[34m\033[1mHeart zones (LTHR={threshold_hr}bpm)\033[0m")
+    lrp.add_right(f"\x1B[34m\x1B[1mHeart zones (LTHR={threshold_hr}bpm)\x1B[0m")
     lrp.add_right("")
 
     lrp.add_right("    Zone                               BPM     Duration     Pct%   Histogram")
@@ -250,9 +244,7 @@ def _print_hr_zones(activity: Activity, lrp: LeftRightPrinter):
         pct_text = format(pct, ".1f").rjust(6)
         duration = str(timedelta(seconds=result.count)).rjust(8)
         bar = "█" * int(pct)
-        lrp.add_right(
-            f"    {result.name:30}   {lower}{sep}{upper}   {duration}  {pct_text}%   {result.colour}{bar}\033[0m"
-        )
+        lrp.add_right(f"    {result.name:30}   {lower}{sep}{upper}   {duration}  {pct_text}%   {result.colour}{bar}\x1B[0m")
 
     lrp.add_right("    ──────────────────────────────   ───────   ────────   ──────   " + ("─" * 100))
 
@@ -276,7 +268,7 @@ def _print_aerobic_decoupling(activity: Activity):
     coupling_text = format_aero_decoupling(aerobic_decoupling=aerobic_decoupling, width=0)
 
     print("")
-    print("\033[34m\033[1mAerobic decoupling\033[0m")
+    print("\x1B[34m\x1B[1mAerobic decoupling\x1B[0m")
     print("")
     print(f"    Overall ............. {coupling_text}")
     print(f"    First half .......... {first_half_text} (pAvg:hrAvg)")
@@ -316,7 +308,7 @@ def _print_peaks(activity: Activity):
     hr120min = str(activity.peak_120min_hr).rjust(9) if activity.peak_120min_hr else "         "
 
     print()
-    print("\033[34m\033[1mPeaks\033[0m")
+    print("\x1B[34m\x1B[1mPeaks\x1B[0m")
     print("")
     print("           Power (W)   HR (bpm)")
     print("           ─────────  ─────────")

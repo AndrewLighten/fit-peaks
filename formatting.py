@@ -25,11 +25,11 @@ def format_aero_decoupling(*, aerobic_decoupling: AerobicDecoupling, width: int 
         coupling_text = coupling_text.rjust(width)
 
     if aerobic_decoupling.coupling < 5:
-        coupling_text = "\033[32m\033[1m" + coupling_text + "\033[0m"
+        coupling_text = "\x1B[32m\x1B[1m" + coupling_text + "\x1B[0m"
     elif aerobic_decoupling.coupling < 8:
-        coupling_text = "\033[33m\033[1m" + coupling_text + "\033[0m"
+        coupling_text = "\x1B[33m\x1B[1m" + coupling_text + "\x1B[0m"
     else:
-        coupling_text = "\033[31m\033[1m" + coupling_text + "\033[0m"
+        coupling_text = "\x1B[31m\x1B[1m" + coupling_text + "\x1B[0m"
 
     return coupling_text
 
@@ -55,11 +55,11 @@ def format_variability_index(*, activity: Activity, width: int = 0) -> str:
         variability_index = variability_index.rjust(width)
 
     if activity.variability_index < 9:
-        variability_index = "\033[32m\033[1m" + variability_index + "\033[0m"
+        variability_index = "\x1B[32m\x1B[1m" + variability_index + "\x1B[0m"
     elif activity.variability_index < 13:
-        variability_index = "\033[33m\033[1m" + variability_index + "\033[0m"
+        variability_index = "\x1B[33m\x1B[1m" + variability_index + "\x1B[0m"
     else:
-        variability_index = "\033[31m\033[1m" + variability_index + "\033[0m"
+        variability_index = "\x1B[31m\x1B[1m" + variability_index + "\x1B[0m"
 
     return variability_index
 
@@ -139,7 +139,7 @@ class LeftRightPrinter:
         for ch in text:
 
             # Entering or leaving an ANSI sequence?
-            if ch == "\033":
+            if ch == "\x1B":
                 in_ansi = True
             elif ch == "m" and in_ansi:
                 in_ansi = False

@@ -145,12 +145,8 @@ def _print_header():
     Print the report header.
     """
     print()
-    print(
-        "                                                                                                                                                        ┌─────────────────────── Measurements in BPM ─────────────────────┐"
-    )
-    print(
-        "ID      Date               Activity                                                                           Distance   Elevation   Start   Duration     5s    30s    60s     5m    10m    20m    30m    60m    90m   120m"
-    )
+    print("                                                                                                                                                        ┌─────────────────────── Measurements in BPM ─────────────────────┐")
+    print("ID      Date               Activity                                                                           Distance   Elevation   Start   Duration     5s    30s    60s     5m    10m    20m    30m    60m    90m   120m")
     _print_separator()
 
 
@@ -187,11 +183,11 @@ def _print_detail(peak: Activity, max: Dict[str, List[int]]):
         if max is None or val is None:
             return label
         if val >= max[0]:
-            label = "\033[37;41m" + label + "\033[0m"
+            label = "\x1B[37;41m" + label + "\x1B[0m"
         elif val >= max[1]:
-            label = "\033[30;43m" + label + "\033[0m"
+            label = "\x1B[30;43m" + label + "\x1B[0m"
         elif len(max) > 2 and val >= max[2]:
-            label = "\033[30;47m" + label + "\033[0m"
+            label = "\x1B[30;47m" + label + "\x1B[0m"
         return label
 
     # Highlight those peaks in this activity that are the highest peak we've ever seen.
@@ -207,9 +203,7 @@ def _print_detail(peak: Activity, max: Dict[str, List[int]]):
     p120min = _decorate(peak.peak_120min_hr, max["120min"], p120min)
 
     # Print the data.
-    print(
-        f"{rowid}   {date}   {activity_name}   {distance}      {elevation}   {start}   {duration}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}"
-    )
+    print(f"{rowid}   {date}   {activity_name}   {distance}      {elevation}   {start}   {duration}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}")
 
 
 def _print_summary(max: Dict[str, List[int]]):
@@ -256,45 +250,17 @@ def _print_summary(max: Dict[str, List[int]]):
 
     # Print the result.
     print()
-    print(
-        "                                                                                                                                                        ┌─────────────────────── Measurements in BPM ─────────────────────┐"
-    )
-    print(
-        "                                                                                                                                                          5s    30s    60s     5m    10m    20m    30m    60m    90m   120m"
-    )
-    print(
-        "─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────"
-    )
-    print(
-        f"Peak values                                                                                                                                     \033[37;41mFirst\033[0m   {p5sec_0}   {p30sec_0}   {p60sec_0}   {p5min_0}   {p10min_0}   {p20min_0}   {p30min_0}   {p60min_0}   {p90min_0}   {p120min_0}"
-    )
-    print(
-        f"                                                                                                                                               \033[30;43mSecond\033[0m   {p5sec_1}   {p30sec_1}   {p60sec_1}   {p5min_1}   {p10min_1}   {p20min_1}   {p30min_1}   {p60min_1}   {p90min_1}   {p120min_1}"
-    )
-    print(
-        f"                                                                                                                                                \033[30;47mThird\033[0m   {p5sec_2}   {p30sec_2}   {p60sec_2}   {p5min_2}   {p10min_2}   {p20min_2}   {p30min_2}   {p60min_2}   {p90min_2}   {p120min_2}"
-    )
-    print(
-        "─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────"
-    )
+    print("                                                                                                                                                        ┌─────────────────────── Measurements in BPM ─────────────────────┐")
+    print("                                                                                                                                                          5s    30s    60s     5m    10m    20m    30m    60m    90m   120m")
+    print("─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────")
+    print(f"Peak values                                                                                                                                     \x1B[37;41mFirst\x1B[0m   {p5sec_0}   {p30sec_0}   {p60sec_0}   {p5min_0}   {p10min_0}   {p20min_0}   {p30min_0}   {p60min_0}   {p90min_0}   {p120min_0}")
+    print(f"                                                                                                                                               \x1B[30;43mSecond\x1B[0m   {p5sec_1}   {p30sec_1}   {p60sec_1}   {p5min_1}   {p10min_1}   {p20min_1}   {p30min_1}   {p60min_1}   {p90min_1}   {p120min_1}")
+    print(f"                                                                                                                                                \x1B[30;47mThird\x1B[0m   {p5sec_2}   {p30sec_2}   {p60sec_2}   {p5min_2}   {p10min_2}   {p20min_2}   {p30min_2}   {p60min_2}   {p90min_2}   {p120min_2}")
+    print("─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────")
 
 
 def _print_footer(
-    *,
-    week_distance_total: int,
-    week_elevation_total: int,
-    week_duration_total: timedelta,
-    week_work_days: int,
-    week_5sec_average: List[int],
-    week_30sec_average: List[int],
-    week_60sec_average: List[int],
-    week_5min_average: List[int],
-    week_10min_average: List[int],
-    week_20min_average: List[int],
-    week_30min_average: List[int],
-    week_60min_average: List[int],
-    week_90min_average: List[int],
-    week_120min_average: List[int],
+    *, week_distance_total: int, week_elevation_total: int, week_duration_total: timedelta, week_work_days: int, week_5sec_average: List[int], week_30sec_average: List[int], week_60sec_average: List[int], week_5min_average: List[int], week_10min_average: List[int], week_20min_average: List[int], week_30min_average: List[int], week_60min_average: List[int], week_90min_average: List[int], week_120min_average: List[int],
 ):
     """
     Print a footer.
@@ -331,12 +297,8 @@ def _print_footer(
     p90min = _average(week_90min_average)
     p120min = _average(week_120min_average)
 
-    print(
-        f"                                                                                              Weekly totals   {distance}      {elevation}           {duration_total}"
-    )
-    print(
-        f"                                                                                            Weekly averages   {distance_average}      {elevation_average}           {duration_average}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}"
-    )
+    print(f"                                                                                              Weekly totals   {distance}      {elevation}           {duration_total}")
+    print(f"                                                                                            Weekly averages   {distance_average}      {elevation_average}           {duration_average}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}")
     print()
 
 
@@ -344,9 +306,7 @@ def _print_separator():
     """
     Print a commonly used separator.
     """
-    print(
-        "─────   ────────────────   ────────────────────────────────────────────────────────────────────────────────   ────────   ─────────   ─────   ────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────"
-    )
+    print("─────   ────────────────   ────────────────────────────────────────────────────────────────────────────────   ────────   ─────────   ─────   ────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────")
 
 
 def _load_max_values(activities: List[Activity]) -> Dict[str, List[int]]:

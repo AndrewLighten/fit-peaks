@@ -61,11 +61,7 @@ def get_hr(when: datetime) -> Optional[HeartRateData]:
     if not (athlete_data := _get_applicable_entry(when)):
         return None
 
-    return HeartRateData(
-        rest_heart_rate=athlete_data.rest_heart_rate,
-        threshold_heart_rate=athlete_data.threshold_heart_rate,
-        max_heart_rate=athlete_data.max_heart_rate,
-    )
+    return HeartRateData(rest_heart_rate=athlete_data.rest_heart_rate, threshold_heart_rate=athlete_data.threshold_heart_rate, max_heart_rate=athlete_data.max_heart_rate,)
 
 
 def _get_applicable_entry(when: datetime) -> Optional[AthleteData]:
@@ -122,16 +118,7 @@ def _get_all_athlete_data() -> Optional[List[AthleteData]]:
         # Load the JSON array of athlete data
         with open(ATHLETE_FILE) as json_file:
             athlete_values = json.load(json_file)
-            return [
-                AthleteData(
-                    start_date=datetime.strptime(raw_data["date"], "%d-%b-%Y"),
-                    ftp=raw_data["ftp"],
-                    rest_heart_rate=raw_data["rhr"],
-                    threshold_heart_rate=raw_data["thr"],
-                    max_heart_rate=raw_data["mhr"],
-                )
-                for raw_data in athlete_values
-            ]
+            return [AthleteData(start_date=datetime.strptime(raw_data["date"], "%d-%b-%Y"), ftp=raw_data["ftp"], rest_heart_rate=raw_data["rhr"], threshold_heart_rate=raw_data["thr"], max_heart_rate=raw_data["mhr"],) for raw_data in athlete_values]
 
     # No athlete data available
     except FileNotFoundError:

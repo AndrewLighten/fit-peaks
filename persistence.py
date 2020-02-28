@@ -384,7 +384,6 @@ class Persistence:
         """
 
         self.conn.execute(
-            UPDATE_ZWIFT_SQL,
-            {"start_time": start_time, "end_time": end_time, "elevation": elevation, "activity_name": activity_name,},
+            UPDATE_ZWIFT_SQL, {"start_time": start_time, "end_time": end_time, "elevation": elevation, "activity_name": activity_name,},
         )
         self.conn.commit()
