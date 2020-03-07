@@ -25,14 +25,35 @@ def format_aero_decoupling(*, aerobic_decoupling: AerobicDecoupling, width: int 
         coupling_text = coupling_text.rjust(width)
 
     if aerobic_decoupling.coupling < 5:
-        coupling_text = "\x1B[32m\x1B[1m" + coupling_text + "\x1B[0m"
+        coupling_text = "\x1B[32m\x1B[1m" + coupling_text + "\x1B[0m"   # green
     elif aerobic_decoupling.coupling < 8:
-        coupling_text = "\x1B[33m\x1B[1m" + coupling_text + "\x1B[0m"
+        coupling_text = "\x1B[33m\x1B[1m" + coupling_text + "\x1B[0m"   # orange
     else:
-        coupling_text = "\x1B[31m\x1B[1m" + coupling_text + "\x1B[0m"
+        coupling_text = "\x1B[31m\x1B[1m" + coupling_text + "\x1B[0m"   # red
 
     return coupling_text
 
+
+def format_aero_efficiency(*, aerobic_efficiency: int, width: int = 0) -> str:
+
+    if not aerobic_efficiency:
+        return "".rjust(width) if width > 0 else ""
+
+    aerobic_efficiency_text = format(aerobic_efficiency, ".2f") + "%"
+
+    if width > 0:
+        aerobic_efficiency_text = aerobic_efficiency_text.rjust(width)
+
+    if aerobic_efficiency > 2.2:
+        aerobic_efficiency_text = "\x1B[32m\x1B[1m" + aerobic_efficiency_text + "\x1B[0m"   # green
+    elif aerobic_efficiency > 2.0:
+        aerobic_efficiency_text = "\x1B[33m\x1B[1m" + aerobic_efficiency_text + "\x1B[0m"   # orange
+    else:
+        aerobic_efficiency_text = "\x1B[31m\x1B[1m" + aerobic_efficiency_text + "\x1B[0m"   # red
+
+
+
+    return aerobic_efficiency_text
 
 def format_variability_index(*, activity: Activity, width: int = 0) -> str:
     """

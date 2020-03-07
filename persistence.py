@@ -109,9 +109,9 @@ class SelectIndices(Enum):
     Peak120MinHr = auto()
 
 
-SELECT_ALL = SELECT + " where peak_60sec_power is not null order by start_time"
+SELECT_ALL = SELECT + " where peak_10min_power is not null order by start_time"
 
-SELECT_FROM_DATE = SELECT + " where peak_60sec_power is not null and start_time >= :start_date order by start_time"
+SELECT_FROM_DATE = SELECT + " where peak_10min_power is not null and start_time >= :start_date order by start_time"
 
 INSERT_SQL = """
     insert into activity 

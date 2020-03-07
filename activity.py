@@ -61,3 +61,4 @@ class Activity:
     tss: int = None
     speed_in_kmhr: float = None
     aerobic_decoupling: AerobicDecoupling = None
+    aerobic_efficiency: float = None

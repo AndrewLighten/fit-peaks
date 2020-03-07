@@ -1,12 +1,11 @@
 import itertools
-from collections import deque
 from typing import List, Dict, Tuple
 from datetime import datetime
 from dateutil import tz
 
 from fitparse import FitFile
 from fitparse.utils import FitParseError
-
+from calculations import calculate_normalised_power, get_moving_average
 from activity import Activity
 
 # This dictionary describes the time periods (in seconds) that we break power
@@ -66,7 +65,7 @@ def load_file_data(*, path: str) -> Activity:
     activity.distance = distance
     activity.avg_power = int(sum(power) / len(power))
     activity.max_power = max(power)
-    activity.normalised_power = _calculate_normalised_power(power=power)
+    activity.normalised_power = calculate_normalised_power(power=power)
     activity.avg_hr = int(sum(hr) / len(hr))
     activity.max_hr = max(hr)
     activity.raw_power = power
@@ -98,7 +97,7 @@ def _load_peaks(source: List[int], attributes: Dict[int, str], activity: Activit
     """
 
     for window, attr_name in attributes.items():
-        if (moving_average := _get_moving_average(source=source, window=window)) :
+        if (moving_average := get_moving_average(source=source, window=window)) :
             activity.__dict__[attr_name] = int(max(moving_average))
         else:
             activity.__dict__[attr_name] = None
@@ -153,84 +152,3 @@ def _load_file_data(*, fitfile: FitFile) -> Tuple[datetime, datetime, List[int],
     return start_time, end_time, power, hr, distance
 
 
-def _get_moving_average(*, source: List[int], window: int) -> List[int]:
-    """
-    Get a moving average from an iterable value.
-    
-    Args:
-        source: The data to iterate over.
-        window: The moving average window, in seconds.
-    
-    Yields:
-         The moving averages found in the data.
-    """
-
-    # Create an iterable object from the source data.
-    it = iter(source)
-    d = deque(itertools.islice(it, window - 1))
-
-    # Create deque object by slicing iterable.
-    d.appendleft(0)
-
-    # Initialise.
-    avg_list = []
-
-    # Iterate over the source data, yielding the moving average.
-    s = sum(d)
-    for elem in it:
-        s += elem - d.popleft()
-        d.append(elem)
-        avg_list.append(int(s / window))
-
-    # Done.
-    return avg_list
-
-
-def _calculate_normalised_power(*, power: List[int]) -> int:
-    """
-    Given a collection of power figures, calculate the normalised power.
-    
-    This algorithm comes from the book ‘Training and Racing with a Power Meter’,
-    by Hunter and Allen via the blog post at
-    https://medium.com/critical-powers/formulas-from-training-and-racing-with-a-power-meter-2a295c661b46.
-
-    In essence, it's as follows:
-
-    Step 1
-        Calculate the rolling average with a window of 30 seconds: 
-        Start at 30 seconds, calculate the average power of the previous 
-        30 seconds and to the end for every second after that.
-
-    Step 2
-        Calculate the 4th power of the values from the previous step.
-
-    Step 3
-        Calculate the average of the values from the previous step.
-
-    Step 4
-        Take the fourth root of the average from the previous step.
-        This is your normalized power.
-
-    Args:
-        power: The power figures for each second.
-    
-    Returns:
-        int: The normalised power.
-    """
-
-    # Step 1: get our moving averages
-    moving_averages = _get_moving_average(source=power, window=30)
-    if not moving_averages:
-        return 0
-
-    # Step 2: calculate the fourth power of each figure
-    fourth_powers = [pow(x, 4) for x in moving_averages]
-
-    # Step 3: Calculate the average of our fourth powers
-    fourth_power_average = sum(fourth_powers) / len(fourth_powers)
-
-    # Step 4: Take the fourth root of the average to yield normalised power
-    normalised_power = pow(fourth_power_average, 0.25)
-
-    # Done!
-    return int(normalised_power)

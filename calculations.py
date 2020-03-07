@@ -3,9 +3,10 @@ from collections import namedtuple
 from typing import List, Optional
 from calculation_data import AerobicDecoupling, Fitness
 from athlete import get_ftp
+from collections import deque
 import datetime
 import itertools
-
+import math
 
 def calculate_transient_values(activity: Activity):
     """
@@ -33,6 +34,7 @@ def calculate_transient_values(activity: Activity):
     # See https://www.trainingpeaks.com/blog/aerobic-endurance-and-decoupling.
     if distance_in_meters >= 10000:
         activity.aerobic_decoupling = calculate_aerobic_decoupling(activity)
+        activity.aerobic_efficiency = activity.normalised_power / activity.avg_hr
 
 
 def calculate_aerobic_decoupling(activity: Activity) -> Optional[AerobicDecoupling]:
@@ -77,6 +79,8 @@ def calculate_fitness(*, activities: List[Activity]) -> Fitness:
     """
     Calculate fitness given a list of activities.
     
+    TODO: Pretty sure this logic is badly broken. It's not used right now.
+    
     Args:
         activities: The activities.
     
@@ -94,6 +98,89 @@ def calculate_fitness(*, activities: List[Activity]) -> Fitness:
 
     # Done
     return Fitness(ctl=ctl, atl=atl, tsb=ctl - atl)
+
+
+def calculate_normalised_power(*, power: List[int]) -> int:
+    """
+    Given a collection of power figures, calculate the normalised power.
+    
+    This algorithm comes from the book ‘Training and Racing with a Power Meter’,
+    by Hunter and Allen via the blog post at
+    https://medium.com/critical-powers/formulas-from-training-and-racing-with-a-power-meter-2a295c661b46.
+
+    In essence, it's as follows:
+
+    Step 1
+        Calculate the rolling average with a window of 30 seconds: 
+        Start at 30 seconds, calculate the average power of the previous 
+        30 seconds and to the end for every second after that.
+
+    Step 2
+        Calculate the 4th power of the values from the previous step.
+
+    Step 3
+        Calculate the average of the values from the previous step.
+
+    Step 4
+        Take the fourth root of the average from the previous step.
+        This is your normalized power.
+
+    Args:
+        power: The power figures for each second.
+    
+    Returns:
+        int: The normalised power.
+    """
+
+    # Step 1: get our moving averages
+    moving_averages = get_moving_average(source=power, window=30)
+    if not moving_averages:
+        return 0
+
+    # Step 2: calculate the fourth power of each figure
+    fourth_powers = [pow(x, 4) for x in moving_averages]
+
+    # Step 3: Calculate the average of our fourth powers
+    fourth_power_average = sum(fourth_powers) / len(fourth_powers)
+
+    # Step 4: Take the fourth root of the average to yield normalised power
+    normalised_power = pow(fourth_power_average, 0.25)
+
+    # Done!
+    return int(normalised_power)
+
+def get_moving_average(*, source: List[int], window: int) -> List[int]:
+    """
+    Get a moving average from an iterable value.
+    
+    Args:
+        source: The data to iterate over.
+        window: The moving average window, in seconds.
+    
+    Yields:
+         The moving averages found in the data.
+    """
+
+    # Create an iterable object from the source data.
+    it = iter(source)
+    d = deque(itertools.islice(it, window - 1))
+
+    # Create deque object by slicing iterable.
+    d.appendleft(0)
+
+    # Initialise.
+    avg_list = []
+
+    # Iterate over the source data, yielding the moving average.
+    s = sum(d)
+    for elem in it:
+        s += elem - d.popleft()
+        d.append(elem)
+        avg_list.append(int(s / window))
+
+    # Done.
+    return avg_list
+
 
 
 def _calculate_training_load(*, activities: List[Activity], days: int) -> int:
@@ -116,8 +203,27 @@ def _calculate_training_load(*, activities: List[Activity], days: int) -> int:
     tss_list = _calculate_daily_tss(activities=activities, days=days)
     assert len(tss_list) == days
 
-    # Averasge the TSS
-    return int(sum(tss_list) / days)
+    # Start with a load of zero
+    last_load = 0.0
+    lts = []
+
+    # Calculate adjustment
+    lte = math.exp(-1/days)
+    print(lte)
+
+    # Visit each day in turn
+    for tss in tss_list:
+
+        # Calculate the new training load given this TSS
+        load = (tss*(1.0-lte)) + (last_load * lte)
+        print(f"{load=} {tss=} {last_load=}")
+        lts.append(load)
+
+        # Move on
+        last_load = load
+
+    # Done
+    return int(load)
 
 
 def _calculate_daily_tss(*, activities: List[Activity], days: int) -> List[int]:
@@ -190,7 +296,7 @@ def _calculate_aerobic_ratio(*, power: List[int], hr: List[int]) -> Optional[flo
 
     # Calculate power and HR averages
     assert len(power) == len(hr)
-    power_avg = sum(power) / len(power)
+    power_avg = calculate_normalised_power(power=power)
     hr_avg = sum(hr) / len(hr)
 
     # Determine ratio

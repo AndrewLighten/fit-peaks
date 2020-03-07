@@ -1,3 +1,6 @@
+import tempfile
+import base64
+
 from persistence import Persistence
 from activity import Activity
 from athlete import get_ftp, get_hr, HeartRateData
@@ -5,27 +8,33 @@ from typing import List
 from collections import namedtuple, Counter
 from calculations import calculate_transient_values
 from calculation_data import AerobicDecoupling
-from formatting import format_aero_decoupling, format_variability_index, LeftRightPrinter
+from formatting import format_aero_decoupling, format_aero_efficiency, format_variability_index, LeftRightPrinter
 from datetime import timedelta
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+from matplotlib.pyplot import figure
+from scipy.interpolate import make_interp_spline, BSpline
+from scipy.ndimage.filters import gaussian_filter1d
 
 ZoneDefinition = namedtuple("PowerZoneDefinition", "name upper colour")
 
 POWER_ZONE_DEFINITIONS = [
-    ZoneDefinition("Zone 1  - Recovery", 55, "\x1B[38;5;46m"),
-    ZoneDefinition("Zone 2  - Endurance", 75, "\x1B[38;5;148m"),
-    ZoneDefinition("Zone 3  - Tempo", 90, "\x1B[38;5;142m"),
-    ZoneDefinition("Zone 4  - Sub-threshold", 100, "\x1B[38;5;178m"),
-    ZoneDefinition("Zone 5a - Super-threshold", 105, "\x1B[38;5;214m"),
-    ZoneDefinition("Zone 5b - VO2 max", 120, "\x1B[38;5;208m"),
-    ZoneDefinition("Zone 5c - Anaerobic", 150, "\x1B[38;5;202m"),
-    ZoneDefinition("Zone 6  - Neuromuscular power", 0, "\x1B[38;5;196m"),
+    ZoneDefinition("Zone 1 - Recovery", 55, "\x1B[38;5;46m"),
+    ZoneDefinition("Zone 2 - Endurance", 75, "\x1B[38;5;148m"),
+    ZoneDefinition("Zone 3 - Tempo", 90, "\x1B[38;5;142m"),
+    ZoneDefinition("Zone 4 - Threshold", 105, "\x1B[38;5;178m"),
+    ZoneDefinition("Zone 5 - VO2 max", 120, "\x1B[38;5;208m"),
+    ZoneDefinition("Zone 6 - Anaerobic", 150, "\x1B[38;5;202m"),
+    ZoneDefinition("Zone 7 - Neuromuscular", 0, "\x1B[38;5;196m"),
 ]
 
 HEART_ZONE_DEFINITIONS = [
     ZoneDefinition("Zone 1 - Recovery", 68, "\x1B[38;5;46m"),
-    ZoneDefinition("Zone 2 - Aerobic capacity", 83.5, "\x1B[38;5;148m"),
-    ZoneDefinition("Zone 3 - Tempo", 94.5, "\x1B[38;5;214m"),
-    ZoneDefinition("Zone 4 - Threshold", 105.5, "\x1B[38;5;208m"),
+    ZoneDefinition("Zone 2 - Aerobic capacity", 83, "\x1B[38;5;148m"),
+    ZoneDefinition("Zone 3 - Tempo", 94, "\x1B[38;5;214m"),
+    ZoneDefinition("Zone 4 - Threshold", 105, "\x1B[38;5;208m"),
     ZoneDefinition("Zone 5 - VO2 max", 0, "\x1B[38;5;202m"),
 ]
 
@@ -61,6 +70,8 @@ def detail_report(id: int):
         _print_aerobic_decoupling(activity)
     _print_peaks(activity)
 
+    _generate_power_plot(activity)
+
     # Done
     print()
 
@@ -75,7 +86,7 @@ def _print_basic_data(activity: Activity):
 
     # Activity ID and name
     print("")
-    print(f"Activity #{activity.rowid}: \x1B[32m\x1B[1m{activity.activity_name}\x1B[0m")
+    print(f"Activity #{activity.rowid}: \x1B[32m\x1B[1m{activity.activity_name if activity.activity_name else '(Unknown)'}\x1B[0m")
 
     # Date, time, duration
     date = activity.start_time.strftime("%A %d %B, %Y")
@@ -86,22 +97,22 @@ def _print_basic_data(activity: Activity):
     print()
     print("\x1B[34m\x1B[1mBasic statistics\x1B[0m")
     print("")
-    print(f"    Date ................ {date}")
-    print(f"    Time ................ {start} to {end}")
-    print(f"    Duration ............ {duration}")
+    print(f"    Date ................. {date}")
+    print(f"    Time ................. {start} to {end}")
+    print(f"    Duration ............. {duration}")
     if activity.duration_in_seconds - activity.moving_seconds > 10:
         moving = str(timedelta(seconds=activity.moving_seconds)).rjust(8)
-        print(f"    Moving time ......... {moving}")
+        print(f"    Moving time .......... {moving}")
 
     # Distances
     distance = format(round(activity.distance / 1000, 2), ".2f") + "km"
-    elevation = (str(activity.elevation) + "m") if activity.elevation else ""
+    elevation = (format(activity.elevation, ",d") + "m") if activity.elevation else ""
     average_speed = format(activity.speed_in_kmhr, ".2f")
 
     print()
-    print(f"    Distance ............ {distance}")
-    print(f"    Average speed ....... {average_speed}km/hr")
-    print(f"    Elevation gain ...... {elevation}")
+    print(f"    Distance ............. {distance}")
+    print(f"    Average speed ........ {average_speed}km/hr")
+    print(f"    Elevation gain ....... {elevation}")
 
 
 def _print_power(activity: Activity):
@@ -132,15 +143,18 @@ def _print_power_data(activity: Activity, lrp: LeftRightPrinter):
     lrp.add_left("")
     lrp.add_left("\x1B[34m\x1B[1mPower data\x1B[0m")
     lrp.add_left("")
-    lrp.add_left(f"    Average ............. {int(activity.avg_power)}W")
-    lrp.add_left(f"    Maximum ............. {activity.max_power}W")
-    lrp.add_left(f"    Normalised .......... {int(activity.normalised_power)}W")
+    lrp.add_left(f"    Average .............. {int(activity.avg_power)}W")
+    lrp.add_left(f"    Maximum .............. {activity.max_power}W")
+    lrp.add_left(f"    Normalised ........... {int(activity.normalised_power)}W")
     if variability_index_text:
-        lrp.add_left(f"    Variability index ... {variability_index_text}")
+        lrp.add_left(f"    Variability index .... {variability_index_text}")
     lrp.add_left("")
-    lrp.add_left(f"    FTP ................. {activity.ftp}W")
-    lrp.add_left(f"    Intensity factor .... {intensity_factor_text}")
-    lrp.add_left(f"    TSS ................. {tss_text}")
+    lrp.add_left(f"    FTP .................. {activity.ftp}W")
+    lrp.add_left(f"    Intensity factor ..... {intensity_factor_text}")
+    lrp.add_left(f"    TSS .................. {tss_text}")
+    if activity.aerobic_efficiency:
+        aerobic_efficiency = format_aero_efficiency(aerobic_efficiency=activity.aerobic_efficiency)
+        lrp.add_left(f"    Aerobic efficiency ... {aerobic_efficiency} (pNor:hrAvg)")
 
 
 def _print_power_zones(activity: Activity, lrp: LeftRightPrinter):
@@ -172,7 +186,7 @@ def _print_power_zones(activity: Activity, lrp: LeftRightPrinter):
         lower = str(result.lower).rjust(3)
         upper = str(result.upper if result.upper else "").rjust(3)
         sep = "-" if upper.strip() else "+"
-        pct = (result.count / (activity.duration_in_seconds + 1)) * 100
+        pct = (result.count / (activity.moving_seconds + 1)) * 100
         pct_text = format(pct, ".1f").rjust(6)
         duration = str(timedelta(seconds=result.count)).rjust(8)
         bar = "█" * int(pct)
@@ -204,8 +218,8 @@ def _print_hr_data(activity: Activity, lrp: LeftRightPrinter):
     lrp.add_left("")
     lrp.add_left("\x1B[34m\x1B[1mHeart data\x1B[0m")
     lrp.add_left("")
-    lrp.add_left(f"    Average ............. {int(activity.avg_hr)} bpm")
-    lrp.add_left(f"    Maximum ............. {activity.max_hr} bpm")
+    lrp.add_left(f"    Average .............. {int(activity.avg_hr)} bpm")
+    lrp.add_left(f"    Maximum .............. {activity.max_hr} bpm")
 
 
 def _print_hr_zones(activity: Activity, lrp: LeftRightPrinter):
@@ -240,7 +254,7 @@ def _print_hr_zones(activity: Activity, lrp: LeftRightPrinter):
         lower = str(result.lower).rjust(3)
         upper = str(result.upper if result.upper else "").rjust(3)
         sep = "-" if upper.strip() else "+"
-        pct = round((result.count / (activity.duration_in_seconds + 1)) * 100, 1)
+        pct = round((result.count / (activity.moving_seconds + 1)) * 100, 1)
         pct_text = format(pct, ".1f").rjust(6)
         duration = str(timedelta(seconds=result.count)).rjust(8)
         bar = "█" * int(pct)
@@ -270,9 +284,9 @@ def _print_aerobic_decoupling(activity: Activity):
     print("")
     print("\x1B[34m\x1B[1mAerobic decoupling\x1B[0m")
     print("")
-    print(f"    Overall ............. {coupling_text}")
-    print(f"    First half .......... {first_half_text} (pAvg:hrAvg)")
-    print(f"    Second half ......... {second_half_text} (pAvg:hrAvg)")
+    print(f"    Overall .............. {coupling_text}")
+    print(f"    First half ........... {first_half_text} (pAvg:hrAvg)")
+    print(f"    Second half .......... {second_half_text} (pAvg:hrAvg)")
 
 
 def _print_peaks(activity: Activity):
@@ -389,3 +403,78 @@ def _calculate_hr_zones(activity: Activity) -> List[CalculatedZone]:
 
     # Done
     return zones
+
+
+def _generate_power_plot(activity: Activity):
+    """
+    Generate a plot of power over the activity.
+    
+    Args:
+        activity: The activity whose power we're plotting.
+    """
+
+    # Setup colours
+    power_color = "lime"
+    power_trend_color = "seagreen"
+    hr_color = "red"
+    hr_trend_color = "brown"
+    time_color = "dimgrey"
+    title_color = "cyan"
+
+    # Smooth our inputs
+    power_smoothed = gaussian_filter1d(activity.raw_power, sigma=1.5)
+    hr_smoothed = gaussian_filter1d(activity.raw_hr, sigma=1.5)
+
+    # Setup the numpy arrays
+    power_array = np.array(power_smoothed)
+    hr_array = np.array(hr_smoothed)
+
+    # Setup the plot
+    plt.style.use('dark_background')
+    fig, ax1 = plt.subplots()
+    fig.set_size_inches(20,5)
+
+    # Setup the labelling of the X axis
+    def format_date(x, pos=None):
+        time = activity.start_time + timedelta(seconds=x)
+        return time.strftime('%H:%M')
+    ax1.xaxis.set_major_formatter(ticker.FuncFormatter(format_date))
+    ax1.set_xlabel("Time", color=time_color)
+    ax1.tick_params(axis="x", colors=time_color)
+
+    # Setup X coordinate array for trend lines
+    x_coords = np.arange(0, len(power_array))
+
+    # Setup the power Y axis
+    power_z = np.polyfit(x_coords, power_array, 1)
+    power_p = np.poly1d(power_z)
+    ax1.plot(power_array, color=power_color, linewidth=1.5)
+    ax1.plot(x_coords, power_p(x_coords), ":", color=power_trend_color, linewidth=2)
+    ax1.set_ylabel("Power (W)", color=power_color)
+    ax1.grid(linewidth=0.5, color=power_color)
+    ax1.tick_params(axis="y", colors=power_color)
+
+    # Setup the heart rate Y axis
+    hr_z = np.polyfit(x_coords, hr_array, 1)
+    hr_p = np.poly1d(hr_z)
+    ax2 = ax1.twinx()
+    ax2.plot(hr_array, color=hr_color, linewidth=1.5)
+    ax2.plot(x_coords, hr_p(x_coords), ":", color=hr_trend_color, linewidth=2)
+    ax2.set_ylabel("Heart Rate (BPM)", color=hr_color)
+    #ax2.grid(linewidth=0.5, color=hr_color)
+    ax2.tick_params(axis="y", colors=hr_color)
+
+    # Setup the title
+    ax1.set_title(activity.activity_name, color=title_color, fontsize=20)
+
+    # Write to a temporary file
+    _, tf = tempfile.mkstemp(suffix=".png")
+    fig.savefig(tf)
+
+    # Read the image, and Base64 encode it
+    with open(tf, "rb") as img_file:
+        b64_image = base64.b64encode(img_file.read()).decode("utf-8")
+
+    # Display it in iTerm
+    # ESC ] 1337 ; File = [optional arguments] : base-64 encoded file contents ^G
+    print(f"\x1B]1337;File=inline=1;preserveAspectRatio=1:{b64_image}\x07")

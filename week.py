@@ -66,13 +66,6 @@ def week_report():
     _print_header()
     _print_activity_details(activities, weekly_totals)
     _print_week_summary(weekly_totals)
-
-    # Get all activities, then calculate and print fitness
-    fitness_date = (datetime.datetime.now() - datetime.timedelta(days=42)).date()
-    if (all_activities := db.load_for_week(start_date=fitness_date)) :
-        fitness: calculation_data.Fitness = calculations.calculate_fitness(activities=all_activities)
-        _print_fitness(fitness)
-
     _print_footer()
 
 
@@ -158,7 +151,7 @@ def _print_activity_detail(activity: Activity, new_day: bool):
     start = activity.start_time.strftime("%H:%M")
     duration = str(activity.end_time - activity.start_time).rjust(8)
     distance = (format(round(activity.distance / 1000, 2), ".2f") + "km").rjust(8)
-    elevation = (str(activity.elevation) + "m").rjust(6) if activity.elevation else "".rjust(6)
+    elevation = (format(activity.elevation, ",d") + "m").rjust(6) if activity.elevation else "".rjust(6)
     activity_name = activity.activity_name.ljust(80) if activity.activity_name else "".ljust(80)
     speed = (format(activity.speed_in_kmhr, ".2f") + "km/hr").rjust(10)
     p_max = str(int(activity.max_power)).rjust(4)

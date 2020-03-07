@@ -8,7 +8,7 @@ from activity import Activity
 from athlete import get_ftp
 from calculations import calculate_transient_values
 from calculation_data import AerobicDecoupling
-from formatting import format_aero_decoupling, format_variability_index
+from formatting import format_aero_decoupling, format_aero_efficiency, format_variability_index
 
 
 @dataclass
@@ -261,7 +261,7 @@ def _print_header():
     """
     print()
     print("                                                                                                                                                                     ┌──────────────────────────────────── Measurements in Watts ──────────────────────────────────┐")
-    print("ID      Date               Activity                                                                           Distance   Elevation   Start   Duration      Speed       5s    30s    60s     5m    10m    20m    30m    60m    90m   120m    Max    Avg   Norm    FTP    V/I    I/F    TSS   AeroDe")
+    print("ID      Date               Activity                                                                           Distance   Elevation   Start   Duration      Speed       5s    30s    60s     5m    10m    20m    30m    60m    90m   120m    Max    Avg   Norm    FTP    V/I    I/F    TSS   AeroDe   AeroEf")
     _print_separator()
 
 
@@ -279,7 +279,7 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
     # Find the activity name
     distance = (format(round(activity.distance / 1000, 2), ".2f") + "km").rjust(8)
     elevation = (format(activity.elevation, ",d") + "m").rjust(6) if activity.elevation else "".rjust(6)
-    activity_name = activity.activity_name.ljust(80) if activity.activity_name else "".ljust(80)
+    activity_name = activity.activity_name.ljust(80) if activity.activity_name else "(Unknown)".ljust(80)
     speed = (format(activity.speed_in_kmhr, ".2f") + "km/hr").rjust(10)
 
     # Find the power figures
@@ -327,9 +327,10 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
 
     # Color the aero decoupling
     coupling_text = format_aero_decoupling(aerobic_decoupling=activity.aerobic_decoupling, width=6)
+    aerobic_efficiency = format_aero_efficiency(aerobic_efficiency=activity.aerobic_efficiency, width=6)
 
     # Print the data.
-    print(f"{rowid}   {date}   {activity_name}   {distance}      {elevation}   {start}   {duration}   {speed}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}   {p_max}   {p_avg}   {p_nor}    {ftp_text}   {variability_index}   {intensity_factor_text}   {tss_text}   {coupling_text}")
+    print(f"{rowid}   {date}   {activity_name}   {distance}      {elevation}   {start}   {duration}   {speed}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}   {p_max}   {p_avg}   {p_nor}    {ftp_text}   {variability_index}   {intensity_factor_text}   {tss_text}   {coupling_text}   {aerobic_efficiency}")
 
 
 def _print_summary(max: Dict[str, List[int]]):
@@ -485,7 +486,7 @@ def _print_separator():
     """
     Print a commonly used separator.
     """
-    print("─────   ────────────────   ────────────────────────────────────────────────────────────────────────────────   ────────   ─────────   ─────   ────────   ──────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ──────")
+    print("─────   ────────────────   ────────────────────────────────────────────────────────────────────────────────   ────────   ─────────   ─────   ────────   ──────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ──────   ──────")
 
 
 def _calculate_transient_values(activities: List[Activity]):
