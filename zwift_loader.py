@@ -40,7 +40,9 @@ def _load_zwift_data():
 
     # Get the list of activities to load
     new_activities = _find_new_activities(known_activities)
-    print(f"Found {len(new_activities)} to load")
+    if new_activities:
+        plural = "activity" if len(new_activities) == 1 else "activities"
+        print(f"Found {len(new_activities)} {plural} to load")
 
     # Load each new activity
     for activity in new_activities:
@@ -69,9 +71,7 @@ def _load_zwift_data():
         loaded += 1
             
     # Done.
-    if not loaded:
-        print(f"No new activities found")
-    else:
+    if loaded:
         plural = "activity" if loaded == 1 else "activities"
         print(f"Loaded {loaded} {plural}")
 

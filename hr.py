@@ -332,7 +332,8 @@ def _load_max_values(activities: List[Activity]) -> Dict[str, List[int]]:
         else:
             l = []
             max[label] = l
-        l.append(val)
+        if not val in l:
+            l.append(val)
 
     # Visit each time period to find the maximum value.
     for activity in activities:
