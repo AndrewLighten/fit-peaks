@@ -8,6 +8,7 @@ import datetime
 import itertools
 import math
 
+
 def calculate_transient_values(activity: Activity):
     """
     Calculate the transient values for a specific activity.
@@ -149,6 +150,7 @@ def calculate_normalised_power(*, power: List[int]) -> int:
     # Done!
     return int(normalised_power)
 
+
 def get_moving_average(*, source: List[int], window: int) -> List[int]:
     """
     Get a moving average from an iterable value.
@@ -182,7 +184,6 @@ def get_moving_average(*, source: List[int], window: int) -> List[int]:
     return avg_list
 
 
-
 def _calculate_training_load(*, activities: List[Activity], days: int) -> int:
     """
     Given a list of activities, and a number of days, calculate the training load for the
@@ -208,14 +209,14 @@ def _calculate_training_load(*, activities: List[Activity], days: int) -> int:
     lts = []
 
     # Calculate adjustment
-    lte = math.exp(-1/days)
+    lte = math.exp(-1 / days)
     print(lte)
 
     # Visit each day in turn
     for tss in tss_list:
 
         # Calculate the new training load given this TSS
-        load = (tss*(1.0-lte)) + (last_load * lte)
+        load = (tss * (1.0 - lte)) + (last_load * lte)
         print(f"{load=} {tss=} {last_load=}")
         lts.append(load)
 

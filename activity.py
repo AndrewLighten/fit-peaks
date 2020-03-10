@@ -8,6 +8,10 @@ class Activity:
     # SQLite row ID
     rowid: int = None
 
+    # Zwift activity ID
+    zwift_id: str = None
+    s3_url: str = None
+
     # Start and end times.
     start_time: datetime = None
     end_time: datetime = None

@@ -150,5 +150,3 @@ def _load_file_data(*, fitfile: FitFile) -> Tuple[datetime, datetime, List[int],
 
     # Done.
     return start_time, end_time, power, hr, distance
-
-

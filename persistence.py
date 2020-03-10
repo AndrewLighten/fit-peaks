@@ -4,7 +4,7 @@ from enum import Enum, auto
 from pathlib import Path
 from datetime import datetime, date
 from dateutil import tz
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Set
 
 from activity import Activity
 
@@ -13,7 +13,8 @@ DATABASE_NAME = str(Path.home()) + "/.fitpeaks-activity.dat"
 CREATE_TABLE = """
             create table activity
             (
-                filename            varchar         primary key,
+                zwift_id            varchar         primary key,
+                s3_url              varchar,
                 
                 start_time          timestamp,
                 end_time            timestamp,
@@ -57,8 +58,9 @@ CREATE_TABLE = """
             """
 
 SELECT = """
-    select rowid,
-        filename, start_time, end_time, distance, elevation, activity_name,
+    select rowid, 
+        zwift_id, s3_url,
+        start_time, end_time, distance, elevation, activity_name,
         avg_power, max_power, normalised_power, avg_hr, max_hr, raw_power, raw_hr,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
@@ -67,14 +69,13 @@ SELECT = """
     from activity
 """
 
-SELECT_FILE = SELECT + " where filename = :filename"
-
 SELECT_ACTIVITY = SELECT + " where rowid = :rowid"
 
 
 class SelectIndices(Enum):
     RowId = 0
-    Filename = auto()
+    ZwiftId = auto()
+    S3Url = auto()
     StartTime = auto()
     EndTime = auto()
     Distance = auto()
@@ -109,6 +110,8 @@ class SelectIndices(Enum):
     Peak120MinHr = auto()
 
 
+SELECT_ID_LIST = "select zwift_id from activity"
+
 SELECT_ALL = SELECT + " where peak_10min_power is not null order by start_time"
 
 SELECT_FROM_DATE = SELECT + " where peak_10min_power is not null and start_time >= :start_date order by start_time"
@@ -116,7 +119,7 @@ SELECT_FROM_DATE = SELECT + " where peak_10min_power is not null and start_time 
 INSERT_SQL = """
     insert into activity 
     (
-        filename, start_time, end_time, distance, elevation, activity_name,
+        zwift_id, s3_url, start_time, end_time, distance, elevation, activity_name,
         avg_power, max_power, normalised_power, avg_hr, max_hr, raw_power, raw_hr,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
@@ -125,7 +128,7 @@ INSERT_SQL = """
     )
     values 
     (
-        :filename, :start_time, :end_time, :distance, :elevation, :activity_name,
+        :zwift_id, :s3_url, :start_time, :end_time, :distance, :elevation, :activity_name,
         :avg_power, :max_power, :normalised_power, :avg_hr, :max_hr, :raw_power, :raw_hr,
         :peak_5sec_power,  :peak_30sec_power, :peak_60sec_power, :peak_5min_power,  :peak_10min_power,
         :peak_20min_power, :peak_30min_power, :peak_60min_power, :peak_90min_power, :peak_120min_power, 
@@ -133,7 +136,7 @@ INSERT_SQL = """
         :peak_20min_hr,    :peak_30min_hr,    :peak_60min_hr,    :peak_90min_hr,    :peak_120min_hr
 
     )
-    on conflict(filename) do update
+    on conflict(zwift_id) do update
     set start_time          = :start_time,
         end_time            = :end_time,
         distance            = :distance,
@@ -168,8 +171,6 @@ INSERT_SQL = """
         peak_120min_hr      = :peak_120min_hr
 """
 
-UPDATE_ZWIFT_SQL = "update activity set activity_name = :activity_name, elevation = :elevation where :start_time <= start_time and :end_time > start_time"
-
 
 class Persistence:
     """
@@ -191,24 +192,25 @@ class Persistence:
         if new_database:
             self.conn.execute(CREATE_TABLE)
 
-    def load(self, *, filename: str) -> Optional[Activity]:
+    def get_known_ids(self) -> Set[str]:
         """
-        Load a given filename's activity data.
-        
-        Args:
-            filename: The file whose activity data should be loaded.
+        Get the list of activity IDs we already have.
         
         Returns:
-            The activity data for this file, if found.
+            A set of activity IDs.
         """
 
         cursor = self.conn.cursor()
         try:
-            cursor.execute(SELECT_FILE, {"filename": filename})
-            record = cursor.fetchone()
-            return self._create_activity(record=record) if record else None
+            id_set = set()
+            cursor.execute(SELECT_ID_LIST)
+            records = cursor.fetchall()
+            for record in records:
+                id_set.add(record[0])
+            return id_set
         finally:
-            cursor.close()
+            cursor.close
+
 
     def load_by_id(self, id: int) -> Optional[Activity]:
         """
@@ -276,6 +278,8 @@ class Persistence:
 
         # Fetch the row ID
         activity.rowid = record[SelectIndices.RowId.value]
+        activity.zwift_id = record[SelectIndices.ZwiftId.value]
+        activity.s3_url = record[SelectIndices.S3Url.value]
 
         # Setup timezones.
         src_tz = tz.tzutc()
@@ -347,19 +351,17 @@ class Persistence:
         # Done.
         return activity
 
-    def store(self, *, filename: str, activity: Activity):
+    def store(self, *, activity: Activity):
         """
         Persist an activity in the SQLite database.
         
         Args:
-            filename: The name of the file we got this activity data from.
             activity: The activity to persist.
         """
 
         # Setup parameters for insert.
-        params = {
-            "filename": filename,
-        }
+        params = {}
+
         for key, value in activity.__dict__.items():
             if key in ["raw_power", "raw_hr"]:
                 params[key] = ",".join(str(x) for x in value)
@@ -368,22 +370,4 @@ class Persistence:
 
         # Insert the record.
         self.conn.execute(INSERT_SQL, params)
-        self.conn.commit()
-
-    def update_with_zwift_data(
-        self, *, start_time: datetime, end_time: datetime, elevation: int, activity_name: str,
-    ):
-        """
-        Update an activity with additional data we got from Zwift.
-        
-        Args:
-            start_time:    The activity start time.
-            end_time:      The activity end time.
-            elevation:     The activity elevation gain.
-            activity_name: The activity name.
-        """
-
-        self.conn.execute(
-            UPDATE_ZWIFT_SQL, {"start_time": start_time, "end_time": end_time, "elevation": elevation, "activity_name": activity_name,},
-        )
         self.conn.commit()

@@ -430,14 +430,15 @@ def _generate_power_plot(activity: Activity):
     hr_array = np.array(hr_smoothed)
 
     # Setup the plot
-    plt.style.use('dark_background')
+    plt.style.use("dark_background")
     fig, ax1 = plt.subplots()
-    fig.set_size_inches(20,5)
+    fig.set_size_inches(20, 5)
 
     # Setup the labelling of the X axis
     def format_date(x, pos=None):
         time = activity.start_time + timedelta(seconds=x)
-        return time.strftime('%H:%M')
+        return time.strftime("%H:%M")
+
     ax1.xaxis.set_major_formatter(ticker.FuncFormatter(format_date))
     ax1.set_xlabel("Time", color=time_color)
     ax1.tick_params(axis="x", colors=time_color)
@@ -461,7 +462,7 @@ def _generate_power_plot(activity: Activity):
     ax2.plot(hr_array, color=hr_color, linewidth=1.5)
     ax2.plot(x_coords, hr_p(x_coords), ":", color=hr_trend_color, linewidth=2)
     ax2.set_ylabel("Heart Rate (BPM)", color=hr_color)
-    #ax2.grid(linewidth=0.5, color=hr_color)
+    # ax2.grid(linewidth=0.5, color=hr_color)
     ax2.tick_params(axis="y", colors=hr_color)
 
     # Setup the title
