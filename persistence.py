@@ -211,7 +211,6 @@ class Persistence:
         finally:
             cursor.close
 
-
     def load_by_id(self, id: int) -> Optional[Activity]:
         """
         Load a given activity's data.

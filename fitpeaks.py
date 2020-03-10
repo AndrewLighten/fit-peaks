@@ -14,9 +14,9 @@ def cli(ctx):
         week_report()
 
 
-# Add in a "zwift" command.
-@click.command("zwift")
-def zwift():
+# Add in a "fetch" command.
+@click.command("fetch")
+def fetch():
     """
     Load any new Zwift data.
     """
@@ -52,7 +52,7 @@ def do_detail_report(id: int):
 
 
 def main():
-    cli.add_command(zwift)
+    cli.add_command(fetch)
     cli.add_command(do_power_report)
     cli.add_command(do_hr_report)
     cli.add_command(do_detail_report)

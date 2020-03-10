@@ -34,7 +34,7 @@ def format_aero_decoupling(*, aerobic_decoupling: AerobicDecoupling, width: int 
     return coupling_text
 
 
-def format_aero_efficiency(*, aerobic_efficiency: int, width: int = 0) -> str:
+def format_aero_efficiency(*, aerobic_efficiency: float, width: int = 0) -> str:
 
     if not aerobic_efficiency:
         return "".rjust(width) if width > 0 else ""

@@ -19,6 +19,7 @@ CONFIG_FILE = str(Path.home()) + "/.fit-peaks.rc"
 
 TEMP_FILE = "./xyzzy.fit"
 
+
 def load_from_zwift():
     """
     Load the latest data from Zwift.
@@ -56,7 +57,7 @@ def _load_zwift_data():
 
         # Add in extra details
         activity_record.zwift_id = zwift_id
-        activity_record.s3_url =s3_url
+        activity_record.s3_url = s3_url
         activity_name = activity["name"]
         if activity_name.startswith("Zwift - "):
             activity_name = activity_name[8:]
@@ -67,16 +68,16 @@ def _load_zwift_data():
 
         # Store this record
         db.store(activity=activity_record)
-        print(f"Loaded activity \"{activity_record.activity_name}\" ({activity_record.start_time})")
+        print(f'Loaded activity "{activity_record.activity_name}" ({activity_record.start_time})')
         loaded += 1
-            
+
     # Done.
     if loaded:
         plural = "activity" if loaded == 1 else "activities"
         print(f"Loaded {loaded} {plural}")
 
 
-def _find_new_activities(known_ids: set) -> List[Any]:
+def _find_new_activities(known_ids: set) -> Optional[List[Any]]:
     """
     Fetch the list of new activities to load.
 
@@ -95,7 +96,7 @@ def _find_new_activities(known_ids: set) -> List[Any]:
     # Fetch the Zwift credentials
     username, password, player_id = _load_zwift_credentials()
     if not username:
-        return
+        return None
 
     # Create the client
     client = Client(username, password)
@@ -103,7 +104,7 @@ def _find_new_activities(known_ids: set) -> List[Any]:
 
     # Initialise to fetch new activities
     start = 0
-    limit = 5
+    limit = 2
     keep_searching = True
 
     # The new activity list
@@ -121,24 +122,22 @@ def _find_new_activities(known_ids: set) -> List[Any]:
         for activity in activities:
 
             # If we've seen this activity, we're digging into old data
-            zwift_id = activity["id_str"]
-            if zwift_id in known_ids:
+            if activity["id_str"] in known_ids:
                 keep_searching = False
                 break
 
             # Discard blank entries
             if not int(activity["distanceInMeters"]):
                 continue
-            
+
             # Add into the list
             new_activity_list.append(activity)
-            
-        # Move on
+
+        # Move on.
         start += limit
 
     # Done -- return the list in reverse order, so older activities load first
     return new_activity_list[::-1]
-
 
 
 def _load_fit_file_content(s3_url: str) -> Optional[Activity]:
@@ -152,7 +151,7 @@ def _load_fit_file_content(s3_url: str) -> Optional[Activity]:
         The activity, if it loaded ok.
     """
 
-    # Setup a request       
+    # Setup a request
     r = requests.get(s3_url)
     if not (r.status_code == 200):
         print(f"Failed to load from S3: {r.status_code=}")
