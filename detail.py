@@ -21,21 +21,20 @@ from scipy.ndimage.filters import gaussian_filter1d
 ZoneDefinition = namedtuple("PowerZoneDefinition", "name upper colour")
 
 POWER_ZONE_DEFINITIONS = [
-    ZoneDefinition("Zone 1 - Recovery", 55, "\x1B[38;5;46m"),
-    ZoneDefinition("Zone 2 - Endurance", 75, "\x1B[38;5;148m"),
-    ZoneDefinition("Zone 3 - Tempo", 90, "\x1B[38;5;142m"),
-    ZoneDefinition("Zone 4 - Threshold", 105, "\x1B[38;5;178m"),
-    ZoneDefinition("Zone 5 - VO2 max", 120, "\x1B[38;5;208m"),
-    ZoneDefinition("Zone 6 - Anaerobic", 150, "\x1B[38;5;202m"),
-    ZoneDefinition("Zone 7 - Neuromuscular", 0, "\x1B[38;5;196m"),
+    ZoneDefinition("Zone 1 - Recovery", 59, "\x1B[38;5;248m"),
+    ZoneDefinition("Zone 2 - Endurance", 75, "\x1B[38;5;27m"),
+    ZoneDefinition("Zone 3 - Tempo", 89, "\x1B[38;5;34m"),
+    ZoneDefinition("Zone 4 - Threshold", 104, "\x1B[38;5;226m"),
+    ZoneDefinition("Zone 5 - VO2 max", 118, "\x1B[38;5;208m"),
+    ZoneDefinition("Zone 6 - Anaerobic", 150, "\x1B[38;5;196m"),
 ]
 
 HEART_ZONE_DEFINITIONS = [
-    ZoneDefinition("Zone 1 - Recovery", 68, "\x1B[38;5;46m"),
-    ZoneDefinition("Zone 2 - Aerobic capacity", 83, "\x1B[38;5;148m"),
-    ZoneDefinition("Zone 3 - Tempo", 94, "\x1B[38;5;214m"),
-    ZoneDefinition("Zone 4 - Threshold", 105, "\x1B[38;5;208m"),
-    ZoneDefinition("Zone 5 - VO2 max", 0, "\x1B[38;5;202m"),
+    ZoneDefinition("Zone 1 - Recovery", 68, "\x1B[38;5;248m"),
+    ZoneDefinition("Zone 2 - Aerobic capacity", 83, "\x1B[38;5;27m"),
+    ZoneDefinition("Zone 3 - Tempo", 94, "\x1B[38;5;34m"),
+    ZoneDefinition("Zone 4 - Threshold", 105, "\x1B[38;5;226m"),
+    ZoneDefinition("Zone 5 - VO2 max", 0, "\x1B[38;5;208m"),
 ]
 
 CalculatedZone = namedtuple("PowerZone", "name lower upper colour")
