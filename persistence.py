@@ -69,7 +69,7 @@ SELECT = """
     from activity
 """
 
-SELECT_ACTIVITY = SELECT + " where rowid = :rowid"
+SELECT_ACTIVITY = SELECT + " where rowid = :rowid and peak_10min_power is not null "
 
 
 class SelectIndices(Enum):

@@ -431,7 +431,7 @@ def _generate_power_plot(activity: Activity):
     # Setup the plot
     plt.style.use("dark_background")
     fig, ax1 = plt.subplots()
-    fig.set_size_inches(20, 5)
+    fig.set_size_inches(40, 18)
 
     # Setup the labelling of the X axis
     def format_date(x, pos=None):
@@ -439,8 +439,8 @@ def _generate_power_plot(activity: Activity):
         return time.strftime("%H:%M")
 
     ax1.xaxis.set_major_formatter(ticker.FuncFormatter(format_date))
-    ax1.set_xlabel("Time", color=time_color)
-    ax1.tick_params(axis="x", colors=time_color)
+    ax1.set_xlabel("Time", color=time_color, fontsize=20)
+    ax1.tick_params(axis="x", colors=time_color, labelsize=20)
 
     # Setup X coordinate array for trend lines
     x_coords = np.arange(0, len(power_array))
@@ -450,9 +450,9 @@ def _generate_power_plot(activity: Activity):
     power_p = np.poly1d(power_z)
     ax1.plot(power_array, color=power_color, linewidth=1.5)
     ax1.plot(x_coords, power_p(x_coords), ":", color=power_trend_color, linewidth=2)
-    ax1.set_ylabel("Power (W)", color=power_color)
+    ax1.set_ylabel("Power (W)", color=power_color, fontsize=20)
     ax1.grid(linewidth=0.5, color=power_color)
-    ax1.tick_params(axis="y", colors=power_color)
+    ax1.tick_params(axis="y", colors=power_color, labelsize=16)
 
     # Setup the heart rate Y axis
     hr_z = np.polyfit(x_coords, hr_array, 1)
@@ -460,12 +460,12 @@ def _generate_power_plot(activity: Activity):
     ax2 = ax1.twinx()
     ax2.plot(hr_array, color=hr_color, linewidth=1.5)
     ax2.plot(x_coords, hr_p(x_coords), ":", color=hr_trend_color, linewidth=2)
-    ax2.set_ylabel("Heart Rate (BPM)", color=hr_color)
+    ax2.set_ylabel("Heart Rate (BPM)", color=hr_color, fontsize=20)
     # ax2.grid(linewidth=0.5, color=hr_color)
-    ax2.tick_params(axis="y", colors=hr_color)
+    ax2.tick_params(axis="y", colors=hr_color, labelsize=16)
 
     # Setup the title
-    ax1.set_title(activity.activity_name, color=title_color, fontsize=20)
+    ax1.set_title(activity.activity_name, color=title_color, fontsize=32)
 
     # Write to a temporary file
     _, tf = tempfile.mkstemp(suffix=".png")
