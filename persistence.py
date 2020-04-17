@@ -370,3 +370,13 @@ class Persistence:
         # Insert the record.
         self.conn.execute(INSERT_SQL, params)
         self.conn.commit()
+
+        # Fetch the row ID
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute('select last_insert_rowid() as "last_row_id"')
+            records = cursor.fetchall()
+            assert len(records) == 1
+            activity.rowid = int(records[0][0])
+        finally:
+            cursor.close()

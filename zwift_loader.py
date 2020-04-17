@@ -68,7 +68,7 @@ def _load_zwift_data():
 
         # Store this record
         db.store(activity=activity_record)
-        print(f'Loaded activity "{activity_record.activity_name}" ({activity_record.start_time})')
+        print(f'Loaded activity "{activity_record.activity_name}" ({activity_record.start_time}) (id={activity_record.rowid})')
         loaded += 1
 
     # Done.
