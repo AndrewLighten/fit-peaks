@@ -24,11 +24,10 @@ def calculate_transient_values(activity: Activity):
     activity.intensity_factor = activity.normalised_power / activity.ftp if activity.ftp else 0
 
     activity.duration_in_seconds = (activity.end_time - activity.start_time).seconds
-    activity.moving_seconds = len(activity.raw_power)
     activity.tss = int((activity.duration_in_seconds * activity.normalised_power * activity.intensity_factor) / (activity.ftp * 36)) if activity.ftp else 0
 
     distance_in_meters = activity.distance
-    speed_in_ms = distance_in_meters / activity.moving_seconds
+    speed_in_ms = distance_in_meters / activity.duration_in_seconds
     activity.speed_in_kmhr = speed_in_ms * 3600 / 1000
 
     # Now calculate aerobic decoupling
@@ -154,17 +153,22 @@ def calculate_normalised_power(*, power: List[int]) -> int:
 def get_moving_average(*, source: List[int], window: int) -> List[int]:
     """
     Get a moving average from an iterable value.
+
+    Note: Any zero values are ignored.
     
     Args:
         source: The data to iterate over.
         window: The moving average window, in seconds.
     
-    Yields:
+    Returns:
          The moving averages found in the data.
     """
 
-    # Create an iterable object from the source data.
-    it = iter(source)
+    # Create a copy of the source data without any zeroes.
+    fixed_source = [x for x in source if x != 0]
+
+    # Create an iterable object from the preprocessed source data.
+    it = iter(fixed_source)
     d = deque(itertools.islice(it, window - 1))
 
     # Create deque object by slicing iterable.

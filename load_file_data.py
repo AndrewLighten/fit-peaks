@@ -1,12 +1,28 @@
 import itertools
 from typing import List, Dict, Tuple
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil import tz
+from dataclasses import dataclass
 
 from fitparse import FitFile
 from fitparse.utils import FitParseError
 from calculations import calculate_normalised_power, get_moving_average
 from activity import Activity
+
+
+@dataclass
+class LoadedData:
+    """
+    This class represents the data we loaded from Zwift.
+    """
+
+    start_time: datetime  # The event start time
+    end_time: datetime  # The event end time
+    power: List[int]  # The list of power values
+    hr: List[int]  # The list of HR values
+    distance: float  # The total distance travelled
+    moving_time: int  # The number of moving seconds
+
 
 # This dictionary describes the time periods (in seconds) that we break power
 # averages into, along with the Peaks attribute that the data is stored in.
@@ -54,24 +70,25 @@ def load_file_data(*, path: str) -> Activity:
     fitfile = FitFile(path)
 
     # Load the power and heart rate data.
-    start_time, end_time, power, hr, distance = _load_file_data(fitfile=fitfile)
+    loaded_data = _load_file_data(fitfile=fitfile)
 
     # Setup the activity object
     activity = Activity()
-    activity.start_time = start_time
-    activity.end_time = end_time
+    activity.start_time = loaded_data.start_time
+    activity.end_time = loaded_data.end_time
+    activity.moving_time = loaded_data.moving_time
     activity.activity_name = None
     activity.elevation = None
-    activity.distance = distance
-    activity.avg_power = int(sum(power) / len(power))
-    activity.max_power = max(power)
-    activity.normalised_power = calculate_normalised_power(power=power)
-    activity.avg_hr = int(sum(hr) / len(hr))
-    activity.max_hr = max(hr)
-    activity.raw_power = power
-    activity.raw_hr = hr
-    _load_peaks(source=power, attributes=POWER_AVERAGES, activity=activity)
-    _load_peaks(source=hr, attributes=HR_AVERAGES, activity=activity)
+    activity.distance = loaded_data.distance
+    activity.avg_power = int(sum(loaded_data.power) / loaded_data.moving_time)
+    activity.max_power = max(loaded_data.power)
+    activity.normalised_power = calculate_normalised_power(power=loaded_data.power)
+    activity.avg_hr = int(sum(loaded_data.hr) / loaded_data.moving_time)
+    activity.max_hr = max(loaded_data.hr)
+    activity.raw_power = loaded_data.power
+    activity.raw_hr = loaded_data.hr
+    _load_peaks(source=loaded_data.power, attributes=POWER_AVERAGES, activity=activity)
+    _load_peaks(source=loaded_data.hr, attributes=HR_AVERAGES, activity=activity)
 
     # Done.
     return activity
@@ -103,7 +120,7 @@ def _load_peaks(source: List[int], attributes: Dict[int, str], activity: Activit
             activity.__dict__[attr_name] = None
 
 
-def _load_file_data(*, fitfile: FitFile) -> Tuple[datetime, datetime, List[int], List[int], float]:
+def _load_file_data(*, fitfile: FitFile) -> LoadedData:
     """
     Load the data from the nominated file.
     
@@ -111,8 +128,7 @@ def _load_file_data(*, fitfile: FitFile) -> Tuple[datetime, datetime, List[int],
         fitfile: The file to load the data from.
     
     Returns:
-        Tuple[datetime, datetime, List[int], List[int], float]:
-            The start time, end time, power figures, HR figures, and distance travelled.
+        The data we loaded.
     """
 
     # Initialise.
@@ -121,9 +137,13 @@ def _load_file_data(*, fitfile: FitFile) -> Tuple[datetime, datetime, List[int],
     power = []
     hr = []
     distance = 0.0
+    moving_time = 0
 
     # Iterate over the file.
     for record in fitfile.get_messages("record"):
+
+        # Bump the moving time
+        moving_time += 1
 
         # Go through all the data entries in this record.
         for record_data in record:
@@ -132,8 +152,20 @@ def _load_file_data(*, fitfile: FitFile) -> Tuple[datetime, datetime, List[int],
             if start_time is None and record_data.name == "timestamp":
                 start_time = record_data.value
 
-            # End time?
+            # End time? We need to deal carefully with this, because if we've
+            # got missing data (the next value isn't exactly one second later
+            # than the current value) we have to fill power and HR with
+            # zeroes.
             if record_data.name == "timestamp":
+
+                # Check that this data is one second later; if not, extrapolate
+                if end_time is not None and end_time + timedelta(seconds=1) < record_data.value:
+                    seconds_to_add = (record_data.value - end_time).seconds - 1
+                    zeroes = [0] * seconds_to_add
+                    power.extend(zeroes)
+                    hr.extend(zeroes)
+
+                # Capture the end time
                 end_time = record_data.value
 
             # Fetch power.
@@ -149,4 +181,4 @@ def _load_file_data(*, fitfile: FitFile) -> Tuple[datetime, datetime, List[int],
                 distance = float(record_data.value)
 
     # Done.
-    return start_time, end_time, power, hr, distance
+    return LoadedData(start_time=start_time, end_time=end_time, power=power, hr=hr, distance=distance, moving_time=moving_time)

@@ -18,6 +18,7 @@ CREATE_TABLE = """
                 
                 start_time          timestamp,
                 end_time            timestamp,
+                moving_time         int,
                 
                 distance            real,
                 elevation           int             null,
@@ -60,7 +61,7 @@ CREATE_TABLE = """
 SELECT = """
     select rowid, 
         zwift_id, s3_url,
-        start_time, end_time, distance, elevation, activity_name,
+        start_time, end_time, moving_time, distance, elevation, activity_name,
         avg_power, max_power, normalised_power, avg_hr, max_hr, raw_power, raw_hr,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
@@ -78,6 +79,7 @@ class SelectIndices(Enum):
     S3Url = auto()
     StartTime = auto()
     EndTime = auto()
+    MovingTime = auto()
     Distance = auto()
     Elevation = auto()
     ActivityName = auto()
@@ -119,7 +121,7 @@ SELECT_FROM_DATE = SELECT + " where peak_10min_power is not null and start_time 
 INSERT_SQL = """
     insert into activity 
     (
-        zwift_id, s3_url, start_time, end_time, distance, elevation, activity_name,
+        zwift_id, s3_url, start_time, end_time, moving_time, distance, elevation, activity_name,
         avg_power, max_power, normalised_power, avg_hr, max_hr, raw_power, raw_hr,
         peak_5sec_power,  peak_30sec_power, peak_60sec_power, peak_5min_power,  peak_10min_power,
         peak_20min_power, peak_30min_power, peak_60min_power, peak_90min_power, peak_120min_power, 
@@ -128,7 +130,7 @@ INSERT_SQL = """
     )
     values 
     (
-        :zwift_id, :s3_url, :start_time, :end_time, :distance, :elevation, :activity_name,
+        :zwift_id, :s3_url, :start_time, :end_time, :moving_time, :distance, :elevation, :activity_name,
         :avg_power, :max_power, :normalised_power, :avg_hr, :max_hr, :raw_power, :raw_hr,
         :peak_5sec_power,  :peak_30sec_power, :peak_60sec_power, :peak_5min_power,  :peak_10min_power,
         :peak_20min_power, :peak_30min_power, :peak_60min_power, :peak_90min_power, :peak_120min_power, 
@@ -139,6 +141,7 @@ INSERT_SQL = """
     on conflict(zwift_id) do update
     set start_time          = :start_time,
         end_time            = :end_time,
+        moving_time         = :moving_time,
         distance            = :distance,
         elevation           = :elevation,
         activity_name       = :activity_name,
@@ -306,6 +309,9 @@ class Persistence:
             activity.end_time = datetime.strptime(raw_end_time, "%Y-%m-%d %H:%M:%S")
             utc = activity.end_time.replace(tzinfo=src_tz)
             activity.end_time = utc.astimezone(dst_tz)
+
+        # Fetch the moving time
+        activity.moving_time = record[SelectIndices.MovingTime.value]
 
         # Fetch activity name and distance
         activity.distance = record[SelectIndices.Distance.value]

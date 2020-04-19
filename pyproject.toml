@@ -1,3 +1,3 @@
 [tool.black]
-line-length = 500
+line-length = 200
 target-version = ['py38']

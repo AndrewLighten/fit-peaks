@@ -5,6 +5,12 @@
 		}
 	],
 	"settings": {
-		"editor.minimap.size": "fit"
+		"editor.minimap.size": "fit",
+		"files.exclude": {
+			"**/.classpath": true,
+			"**/.project": true,
+			"**/.settings": true,
+			"**/.factorypath": true
+		}
 	}
 }

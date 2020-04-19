@@ -15,6 +15,7 @@ class Activity:
     # Start and end times.
     start_time: datetime = None
     end_time: datetime = None
+    moving_time: int = None
 
     # Activity name and distance travelled.
     distance: float = None
@@ -58,7 +59,6 @@ class Activity:
 
     # Transient values
     duration_in_seconds: int = None
-    moving_seconds: int = None
     variability_index: float = None
     ftp: int = None
     intensity_factor: float = None

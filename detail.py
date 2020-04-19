@@ -99,8 +99,8 @@ def _print_basic_data(activity: Activity):
     print(f"    Date ................. {date}")
     print(f"    Time ................. {start} to {end}")
     print(f"    Duration ............. {duration}")
-    if activity.duration_in_seconds - activity.moving_seconds > 10:
-        moving = str(timedelta(seconds=activity.moving_seconds)).rjust(8)
+    if activity.duration_in_seconds - activity.moving_time > 10:
+        moving = str(timedelta(seconds=activity.moving_time)).rjust(8)
         print(f"    Moving time .......... {moving}")
 
     # Distances
@@ -185,7 +185,7 @@ def _print_power_zones(activity: Activity, lrp: LeftRightPrinter):
         lower = str(result.lower).rjust(3)
         upper = str(result.upper if result.upper else "").rjust(3)
         sep = "-" if upper.strip() else "+"
-        pct = (result.count / (activity.moving_seconds + 1)) * 100
+        pct = (result.count / (activity.moving_time + 1)) * 100
         pct_text = format(pct, ".1f").rjust(6)
         duration = str(timedelta(seconds=result.count)).rjust(8)
         bar = "█" * int(pct)
@@ -253,7 +253,7 @@ def _print_hr_zones(activity: Activity, lrp: LeftRightPrinter):
         lower = str(result.lower).rjust(3)
         upper = str(result.upper if result.upper else "").rjust(3)
         sep = "-" if upper.strip() else "+"
-        pct = round((result.count / (activity.moving_seconds + 1)) * 100, 1)
+        pct = round((result.count / (activity.moving_time + 1)) * 100, 1)
         pct_text = format(pct, ".1f").rjust(6)
         duration = str(timedelta(seconds=result.count)).rjust(8)
         bar = "█" * int(pct)

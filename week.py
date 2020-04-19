@@ -118,7 +118,9 @@ def _print_header():
     """
 
     print("                                                                                                                                                                      ┌──── Watts ─────┐")
-    print("ID      Date               Activity                                                                           Start   Distance    Elevation   Duration        Speed    Max    Avg   Norm   VI    IF     TSS   AeroDe")
+    print(
+        "ID      Date               Activity                                                                           Start   Distance    Elevation   Duration        Speed    Max    Avg   Norm   VI    IF     TSS   AeroDe"
+    )
     _print_separator()
 
 
@@ -133,7 +135,9 @@ def _print_separator():
     """
     Print a separator line.
     """
-    print("─────   ────────────────   ────────────────────────────────────────────────────────────────────────────────   ─────   ────────   ──────────   ────────   ──────────   ────   ────   ────   ──   ────   ────   ──────")
+    print(
+        "─────   ────────────────   ────────────────────────────────────────────────────────────────────────────────   ─────   ────────   ──────────   ────────   ──────────   ────   ────   ────   ──   ────   ────   ──────"
+    )
 
 
 def _print_activity_detail(activity: Activity, new_day: bool):
@@ -162,7 +166,9 @@ def _print_activity_detail(activity: Activity, new_day: bool):
     tss_text = format(activity.tss, ".0f").rjust(4)
     coupling_text = formatting.format_aero_decoupling(aerobic_decoupling=activity.aerobic_decoupling, width=6)
 
-    print(f"{rowid}   {date}   {activity_name}   {start}   {distance}       {elevation}   {duration}   {speed}   {p_max}   {p_avg}   {p_nor} {variability_index}   {intensity_factor_text}   {tss_text}   {coupling_text}")
+    print(
+        f"{rowid}   {date}   {activity_name}   {start}   {distance}       {elevation}   {duration}   {speed}   {p_max}   {p_avg}   {p_nor} {variability_index}   {intensity_factor_text}   {tss_text}   {coupling_text}"
+    )
 
 
 def _accumulate_day_detail(activity: Activity, daily_totals: DailyTotals, weekly_totals: WeeklyTotals):
@@ -220,7 +226,9 @@ def _print_day_summary(daily_totals: DailyTotals):
     tss_text = format(daily_totals.tss_total, ".0f").rjust(4)
 
     # Print them
-    print(f"\x1B[38;5;240m\x1B[3m                                                                                                                      {distance}       {elevation}   {duration}                                                 {tss_text}\x1B[0m")
+    print(
+        f"\x1B[38;5;240m\x1B[3m                                                                                                                      {distance}       {elevation}   {duration}                                                 {tss_text}\x1B[0m"
+    )
 
 
 def _print_week_summary(weekly_totals: WeeklyTotals):
@@ -256,9 +264,15 @@ def _print_week_summary(weekly_totals: WeeklyTotals):
 
     # Print them
     _print_separator()
-    print(f"\x1B[1m                                                                                            Totals for week           {total_distance}       {total_elevation}   {total_duration}                                                 {total_tss}\x1B[0m")
-    print(f"\x1B[1m                                                                                           Averages per day           {avg_distance}       {avg_elevation}   {avg_duration}                                                 {avg_tss}\x1B[0m")
-    print(f"\x1B[1m                                                                        Maximums from individual activities           {max_distance}       {max_elevation}   {max_duration}   {max_speed}   {max_pmax}   {max_pavg}   {max_pnor}        {max_if}   {max_tss}\x1B[0m")
+    print(
+        f"\x1B[1m                                                                                            Totals for week           {total_distance}       {total_elevation}   {total_duration}                                                 {total_tss}\x1B[0m"
+    )
+    print(
+        f"\x1B[1m                                                                                           Averages per day           {avg_distance}       {avg_elevation}   {avg_duration}                                                 {avg_tss}\x1B[0m"
+    )
+    print(
+        f"\x1B[1m                                                                        Maximums from individual activities           {max_distance}       {max_elevation}   {max_duration}   {max_speed}   {max_pmax}   {max_pavg}   {max_pnor}        {max_if}   {max_tss}\x1B[0m"
+    )
 
 
 def _print_fitness(fitness: calculation_data.Fitness):
