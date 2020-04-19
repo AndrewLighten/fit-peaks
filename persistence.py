@@ -70,7 +70,7 @@ SELECT = """
     from activity
 """
 
-SELECT_ACTIVITY = SELECT + " where rowid = :rowid and peak_10min_power is not null "
+SELECT_ACTIVITY = SELECT + " where rowid = :rowid and peak_5min_power is not null "
 
 
 class SelectIndices(Enum):
@@ -114,9 +114,9 @@ class SelectIndices(Enum):
 
 SELECT_ID_LIST = "select zwift_id from activity"
 
-SELECT_ALL = SELECT + " where peak_10min_power is not null order by start_time"
+SELECT_ALL = SELECT + " where peak_5min_power is not null order by start_time"
 
-SELECT_FROM_DATE = SELECT + " where peak_10min_power is not null and start_time >= :start_date order by start_time"
+SELECT_FROM_DATE = SELECT + " where peak_5min_power is not null and start_time >= :start_date order by start_time"
 
 INSERT_SQL = """
     insert into activity 
