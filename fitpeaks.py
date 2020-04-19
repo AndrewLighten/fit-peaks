@@ -5,6 +5,7 @@ from power import power_report
 from hr import hr_report
 from detail import detail_report
 from week import week_report
+from detail_plot import detail_plot_report
 
 # Setup a basic CLI application.
 @click.group(invoke_without_command=True)
@@ -51,11 +52,22 @@ def do_detail_report(id: int):
     detail_report(id)
 
 
+# Add in a "plot" command
+@click.command("plot")
+@click.argument("id", required=True, type=int)
+def do_detail_plot_report(id: int):
+    """
+    Provide an ID, and this command will plot that activity.
+    """
+    detail_plot_report(id)
+
+
 def main():
     cli.add_command(fetch)
     cli.add_command(do_power_report)
     cli.add_command(do_hr_report)
     cli.add_command(do_detail_report)
+    cli.add_command(do_detail_plot_report)
     cli(None)
 
 
