@@ -74,7 +74,7 @@ Options:
 Commands:
   hr     Report on peak heart rate
   power  Report on peak power
-  zwift  Load Zwift data
+  fetch  Load Zwift data
 andrew@i9 ~ (master)>
 ```
 
@@ -88,7 +88,7 @@ To generate the power report:
 
 # Config file with Zwift credentials
 
-The `zwift` command will use the Zwift API to fetch activity names. To do this, you need to create a config file that contains your Zwift username, password, and player ID.
+The `fetch` command will use the Zwift API to fetch activity names. To do this, you need to create a config file that contains your Zwift username, password, and player ID.
 
 Create it in your home directory — it should be available as `~/.fit-peaks.rc`. It should look like this:
 

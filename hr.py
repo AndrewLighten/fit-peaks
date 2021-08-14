@@ -26,7 +26,7 @@ def hr_report():
 
     # Find the maximum for each value.
     max = _load_max_values(activities)
-
+    
     # Totals for the current week
     week_distance_total = 0
     week_elevation_total = 0
@@ -370,7 +370,7 @@ def _load_max_values(activities: List[Activity]) -> Dict[str, List[int]]:
         else:
             l = []
             max[label] = l
-        if not val in l:
+        if val not in l:
             l.append(val)
 
     # Visit each time period to find the maximum value.

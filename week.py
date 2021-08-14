@@ -1,11 +1,11 @@
-import persistence
-import datetime
-import calculations
-import calculation_data
-import formatting
-import typing
 import dataclasses
+import datetime
+import typing
 
+import calculation_data
+import calculations
+import formatting
+import persistence
 from activity import Activity
 
 

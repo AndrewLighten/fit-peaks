@@ -1,5 +1,6 @@
 README.md
 fitpeaks.py
+pyproject.toml
 setup.cfg
 setup.py
 fitpeaks.egg-info/PKG-INFO

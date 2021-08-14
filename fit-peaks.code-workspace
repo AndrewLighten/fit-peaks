@@ -11,6 +11,7 @@
 			"**/.project": true,
 			"**/.settings": true,
 			"**/.factorypath": true
-		}
+		},
+		"python.pythonPath": "/Users/andrew/.pyenv/shims/python3.8"
 	}
 }

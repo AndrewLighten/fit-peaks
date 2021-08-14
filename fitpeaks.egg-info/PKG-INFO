@@ -1,4 +1,4 @@
-Metadata-Version: 1.2
+Metadata-Version: 2.1
 Name: fitpeaks
 Version: 1.0
 Summary: Fitness Peaks
@@ -6,7 +6,6 @@ Home-page: https://github.com/AndrewLighten/fit-peaks
 Author: Andrew Lighten
 Author-email: andrew@digital-ironworks.com
 License: https://www.apache.org/licenses/LICENSE-2.0
-Description: A tool for loading and displaying fitness peaks
 Keywords: fitpeaks
 Platform: Operating System :: MacOS :: MacOS X
 Platform: Operating System :: POSIX :: Linux
@@ -17,3 +16,6 @@ Classifier: Intended Audience :: End Users/Desktop
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Natural Language :: English
 Requires-Python: >=3.8
+
+A tool for loading and displaying fitness peaks
+

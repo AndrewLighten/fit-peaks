@@ -153,7 +153,7 @@ class WeeklyFigures:
             self.max_if = intensity_factor
 
 
-def power_report():
+def power_report(all: bool):
     """
     Print a power report.
     
@@ -165,9 +165,15 @@ def power_report():
     - Print the maximum we found for each power peak as a final summary.
     """
 
+    # Calculate the start date we should use
+    if all:
+        start_date = (datetime.now() - timedelta(days=365)).date()
+    else:
+        start_date = (datetime.now() - timedelta(days=42)).date()
+
     # Load the activity data.
     db = Persistence()
-    if not (activities := db.load_all()):
+    if not (activities := db.load_for_week(start_date)):
         print("No data to report on")
         return
 
@@ -321,8 +327,17 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
     p20min = _decorate(activity.peak_20min_power, max["20min"], p20min)
     p30min = _decorate(activity.peak_30min_power, max["30min"], p30min)
     p60min = _decorate(activity.peak_60min_power, max["60min"], p60min)
-    p90min = _decorate(activity.peak_90min_power, max["90min"], p90min)
-    p120min = _decorate(activity.peak_120min_power, max["120min"], p120min)
+    p90min = (
+        _decorate(activity.peak_90min_power, max["90min"], p90min)
+        if "90min" in max
+        else p90min
+    )
+    p120min = (
+        _decorate(activity.peak_120min_power, max["120min"], p120min)
+        if "120min" in max
+        else p120min
+    )
+
     p_max = _decorate(activity.max_power, max["pMax"], p_max)
     p_avg = _decorate(activity.avg_power, max["pAvg"], p_avg)
     p_nor = _decorate(activity.normalised_power, max["pNor"], p_nor)
@@ -490,8 +505,8 @@ def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
     max_20min = _decorate(weekly_figures.max_20min, max["20min"], max_20min)
     max_30min = _decorate(weekly_figures.max_30min, max["30min"], max_30min)
     max_60min = _decorate(weekly_figures.max_60min, max["60min"], max_60min)
-    max_90min = _decorate(weekly_figures.max_90min, max["90min"], max_90min)
-    max_120min = _decorate(weekly_figures.max_120min, max["120min"], max_120min)
+    max_90min = _decorate(weekly_figures.max_90min, max["90min"], max_90min) if "90min" in max.keys() else max_90min
+    max_120min = _decorate(weekly_figures.max_120min, max["120min"], max_120min) if "120min" in max.keys() else max_120min
     max_pmax = _decorate(weekly_figures.max_pmax, max["pMax"], max_pmax)
     max_pavg = _decorate(weekly_figures.max_pavg, max["pAvg"], max_pavg)
     max_pnor = _decorate(weekly_figures.max_pnor, max["pNor"], max_pnor)

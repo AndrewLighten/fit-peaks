@@ -205,12 +205,9 @@ class Persistence:
 
         cursor = self.conn.cursor()
         try:
-            id_set = set()
             cursor.execute(SELECT_ID_LIST)
             records = cursor.fetchall()
-            for record in records:
-                id_set.add(record[0])
-            return id_set
+            return {record[0] for record in records}
         finally:
             cursor.close
 
@@ -245,10 +242,7 @@ class Persistence:
         try:
             cursor.execute(SELECT_ALL)
             records = cursor.fetchall()
-            activities = []
-            for record in records:
-                activities.append(self._create_activity(record=record))
-            return activities
+            return [self._create_activity(record=record) for record in records]
         finally:
             cursor.close()
 
@@ -257,10 +251,7 @@ class Persistence:
         try:
             cursor.execute(SELECT_FROM_DATE, {"start_date": start_date})
             records = cursor.fetchall()
-            activities = []
-            for record in records:
-                activities.append(self._create_activity(record=record))
-            return activities
+            return [self._create_activity(record=record) for record in records]
         finally:
             cursor.close()
 

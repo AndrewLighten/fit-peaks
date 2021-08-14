@@ -26,12 +26,11 @@ def fetch():
 
 # Add in a "power" command.
 @click.command("power")
-@click.option("--all", is_flag=True)
-def do_power_report(all: bool):
+def do_power_report():
     """
     Report on peak power data.
     """
-    power_report(all)
+    power_report()
 
 
 # Add in a "hr" command.
