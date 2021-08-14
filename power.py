@@ -28,6 +28,8 @@ class WeeklyFigures:
     distance_total: int = 0
     elevation_total: int = 0
     tss_total: int = 0
+    ctl_total: int = 0
+    atl_total: int = 0
     duration_total: timedelta = timedelta(0)
 
     work_days = 0
@@ -62,6 +64,8 @@ class WeeklyFigures:
     max_pnor: int = None
     max_if: float = None
     max_tss: int = None
+    max_ctl: int = None
+    max_atl: int = None
 
     def add_work_day(self):
         self.work_days += 1
@@ -80,6 +84,16 @@ class WeeklyFigures:
         self.tss_total += tss
         if self.max_tss is None or tss > self.max_tss:
             self.max_tss = tss
+
+    def add_ctl(self, ctl: int):
+        self.ctl_total += ctl
+        if self.max_ctl is None or ctl > self.max_ctl:
+            self.max_ctl = ctl
+            
+    def add_atl(self, atl: int ):
+        self.atl_total += atl
+        if self.max_atl is None or atl > self.max_atl:
+            self.max_atl = atl
 
     def add_duration(self, duration: timedelta):
         self.duration_total += duration
@@ -183,9 +197,6 @@ def power_report(all: bool):
     # Find the maximum for each value.
     max = _load_max_values(activities)
 
-    # Calculate our overall fitness
-    fitness = calculate_fitness(activities=activities)
-
     # Establish the prevailing FTP
     prevailing_ftp = None
 
@@ -232,6 +243,9 @@ def power_report(all: bool):
         if activity.elevation:
             weekly_figures.add_elevation(activity.elevation)
         weekly_figures.add_tss(activity.tss)
+        if activity.first_for_day:
+            weekly_figures.add_ctl(activity.ctl)
+            weekly_figures.add_atl(activity.atl)
         weekly_figures.add_duration(duration)
 
         weekly_figures.add_5sec(activity.peak_5sec_power)
@@ -505,6 +519,11 @@ def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
     tss_total_text = str(int(weekly_figures.tss_total)).rjust(4)
     tss_maximum_text = str(int(weekly_figures.max_tss)).rjust(4)
 
+    ctl_average_text = str(int(weekly_figures.ctl_total / weekly_figures.work_days)).rjust(3)
+    ctl_maximum = str(weekly_figures.max_ctl).rjust(3)
+    atl_average_text = str(int(weekly_figures.atl_total / weekly_figures.work_days)).rjust(3)
+    atl_maximum = str(weekly_figures.max_atl).rjust(3)
+
     def _average(values: List[int]) -> str:
         return str(int(sum(values) / len(values))).rjust(4) if values else "    "
 
@@ -555,10 +574,10 @@ def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
         f"                                                                                              Weekly totals   {distance}      {elevation}           {duration_total}                                                                                                                                {tss_total_text}"
     )
     print(
-        f"                                                                                            Weekly averages   {distance_average}      {elevation_average}           {duration_average}                {avg_5sec}   {avg_30sec}   {avg_60sec}   {avg_5min}   {avg_10min}   {avg_20min}   {avg_30min}   {avg_60min}   {avg_90min}   {avg_120min}                                             {tss_average_text}"
+        f"                                                                                            Weekly averages   {distance_average}      {elevation_average}           {duration_average}                {avg_5sec}   {avg_30sec}   {avg_60sec}   {avg_5min}   {avg_10min}   {avg_20min}   {avg_30min}   {avg_60min}   {avg_90min}   {avg_120min}                                             {tss_average_text}                     {ctl_average_text}   {atl_average_text}"
     )
     print(
-        f"                                                                                              Weekly maxima   {distance_maximum}      {elevation_maximum}           {duration_maximum}                {max_5sec}   {max_30sec}   {max_60sec}   {max_5min}   {max_10min}   {max_20min}   {max_30min}   {max_60min}   {max_90min}   {max_120min}   {max_pmax}   {max_pavg}   {max_pnor}                 {max_if}   {tss_maximum_text}"
+        f"                                                                                              Weekly maxima   {distance_maximum}      {elevation_maximum}           {duration_maximum}                {max_5sec}   {max_30sec}   {max_60sec}   {max_5min}   {max_10min}   {max_20min}   {max_30min}   {max_60min}   {max_90min}   {max_120min}   {max_pmax}   {max_pavg}   {max_pnor}                 {max_if}   {tss_maximum_text}                     {ctl_maximum}   {atl_maximum}"
     )
     print()
 
@@ -608,7 +627,7 @@ def _load_max_values(activities: List[Activity]) -> Dict[str, List[int]]:
         else:
             l = []
             max[label] = l
-        if not val in l:
+        if val not in l:
             l.append(val)
 
     # Visit each time period to find the maximum value.
