@@ -30,6 +30,7 @@ class WeeklyFigures:
     tss_total: int = 0
     ctl_total: int = 0
     atl_total: int = 0
+    tsb_total: int = 0
     duration_total: timedelta = timedelta(0)
 
     work_days = 0
@@ -66,6 +67,7 @@ class WeeklyFigures:
     max_tss: int = None
     max_ctl: int = None
     max_atl: int = None
+    max_tsb: int = None
 
     def add_work_day(self):
         self.work_days += 1
@@ -94,6 +96,11 @@ class WeeklyFigures:
         self.atl_total += atl
         if self.max_atl is None or atl > self.max_atl:
             self.max_atl = atl
+
+    def add_tsb(self, tsb: int):
+        self.tsb_total += tsb
+        if self.max_tsb is None or tsb < self.max_tsb:
+            self.max_tsb = tsb
 
     def add_duration(self, duration: timedelta):
         self.duration_total += duration
@@ -246,6 +253,7 @@ def power_report(all: bool):
         if activity.first_for_day:
             weekly_figures.add_ctl(activity.ctl)
             weekly_figures.add_atl(activity.atl)
+            weekly_figures.add_tsb(activity.ctl - activity.atl)
         weekly_figures.add_duration(duration)
 
         weekly_figures.add_5sec(activity.peak_5sec_power)
@@ -364,14 +372,7 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
 
     ctl_text = format_ctl(ctl=ctl, width=3) if activity.first_for_day else "   "
     atl_text = format_atl(atl=atl, width=3) if activity.first_for_day else "   "
-    tsb_text = format_tsb(tsb=tsb, width=3) if activity.first_for_day else "   "
-
-    if tsb < -30 or tsb >= 10:
-        tsb_text = "\x1B[38;5;196m" + tsb_text + "\x1B[0m" # red
-    elif tsb < -10:
-        tsb_text = "\x1B[38;5;41m" + tsb_text + "\x1B[0m" # green
-    else:
-        tsb_text = "\x1B[38;5;220m" + tsb_text + "\x1B[0m" # yellow
+    tsb_text = _get_decorated_tsb(tsb=tsb) if activity.first_for_day else "   " 
 
     # Print the data.
     print(
@@ -523,6 +524,8 @@ def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
     ctl_maximum = str(weekly_figures.max_ctl).rjust(3)
     atl_average_text = str(int(weekly_figures.atl_total / weekly_figures.work_days)).rjust(3)
     atl_maximum = str(weekly_figures.max_atl).rjust(3)
+    tsb_average_text = _get_decorated_tsb(tsb=int(weekly_figures.tsb_total / weekly_figures.work_days))
+    tsb_maximum = _get_decorated_tsb(tsb=weekly_figures.max_tsb)
 
     def _average(values: List[int]) -> str:
         return str(int(sum(values) / len(values))).rjust(4) if values else "    "
@@ -574,13 +577,22 @@ def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
         f"                                                                                              Weekly totals   {distance}      {elevation}           {duration_total}                                                                                                                                {tss_total_text}"
     )
     print(
-        f"                                                                                            Weekly averages   {distance_average}      {elevation_average}           {duration_average}                {avg_5sec}   {avg_30sec}   {avg_60sec}   {avg_5min}   {avg_10min}   {avg_20min}   {avg_30min}   {avg_60min}   {avg_90min}   {avg_120min}                                             {tss_average_text}                     {ctl_average_text}   {atl_average_text}"
+        f"                                                                                            Weekly averages   {distance_average}      {elevation_average}           {duration_average}                {avg_5sec}   {avg_30sec}   {avg_60sec}   {avg_5min}   {avg_10min}   {avg_20min}   {avg_30min}   {avg_60min}   {avg_90min}   {avg_120min}                                             {tss_average_text}                     {ctl_average_text}   {atl_average_text}   {tsb_average_text}"
     )
     print(
-        f"                                                                                              Weekly maxima   {distance_maximum}      {elevation_maximum}           {duration_maximum}                {max_5sec}   {max_30sec}   {max_60sec}   {max_5min}   {max_10min}   {max_20min}   {max_30min}   {max_60min}   {max_90min}   {max_120min}   {max_pmax}   {max_pavg}   {max_pnor}                 {max_if}   {tss_maximum_text}                     {ctl_maximum}   {atl_maximum}"
+        f"                                                                                              Weekly maxima   {distance_maximum}      {elevation_maximum}           {duration_maximum}                {max_5sec}   {max_30sec}   {max_60sec}   {max_5min}   {max_10min}   {max_20min}   {max_30min}   {max_60min}   {max_90min}   {max_120min}   {max_pmax}   {max_pavg}   {max_pnor}                 {max_if}   {tss_maximum_text}                     {ctl_maximum}   {atl_maximum}   {tsb_maximum}"
     )
     print()
 
+
+def _get_decorated_tsb(*, tsb: int):
+    tsb_text = str(tsb).rjust(3)
+    if tsb < -30 or tsb >= 10:
+        return ("\x1B[38;5;196m" + tsb_text + "\x1B[0m")
+    elif tsb < -10:
+        return "\x1B[38;5;41m" + tsb_text + "\x1B[0m"
+    else:
+        return "\x1B[38;5;220m" + tsb_text + "\x1B[0m"
 
 def _print_separator():
     """
