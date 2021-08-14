@@ -79,8 +79,6 @@ def calculate_fitness(*, activities: List[Activity]) -> Fitness:
     """
     Calculate fitness given a list of activities.
     
-    TODO: Pretty sure this logic is badly broken. It's not used right now.
-    
     Args:
         activities: The activities.
     
@@ -206,30 +204,13 @@ def _calculate_training_load(*, activities: List[Activity], days: int) -> int:
 
     # Determine the TSS on each day in our window
     tss_list = _calculate_daily_tss(activities=activities, days=days)
+
+    # Skip the last day (that's today)
+    del tss_list[-1]
     assert len(tss_list) == days
 
-    # Start with a load of zero
-    last_load = 0.0
-    lts = []
-
-    # Calculate adjustment
-    lte = math.exp(-1 / days)
-    print(lte)
-
-    # Visit each day in turn
-    for tss in tss_list:
-
-        # Calculate the new training load given this TSS
-        load = (tss * (1.0 - lte)) + (last_load * lte)
-        print(f"{load=} {tss=} {last_load=}")
-        lts.append(load)
-
-        # Move on
-        last_load = load
-
-    # Done
-    return int(load)
-
+    # Average the tss
+    return sum(tss_list) / len(tss_list)
 
 def _calculate_daily_tss(*, activities: List[Activity], days: int) -> List[int]:
     """

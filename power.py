@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from persistence import Persistence
 from activity import Activity
 from athlete import get_ftp
-from calculations import calculate_transient_values
+from calculations import calculate_transient_values, calculate_fitness
 from calculation_data import AerobicDecoupling
 from formatting import format_aero_decoupling, format_aero_efficiency, format_variability_index
 
@@ -183,6 +183,9 @@ def power_report(all: bool):
     # Find the maximum for each value.
     max = _load_max_values(activities)
 
+    # Calculate our overall fitness
+    fitness = calculate_fitness(activities=activities)
+
     # Establish the prevailing FTP
     prevailing_ftp = None
 
@@ -259,6 +262,10 @@ def power_report(all: bool):
 
     # Print the summary.
     _print_summary(max)
+
+    # Print the fitness
+    if not all:
+        _print_fitness(fitness)
 
 
 def _print_header():
@@ -434,6 +441,34 @@ def _print_summary(max: Dict[str, List[int]]):
     print(
         "──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────                 ────   ────"
     )
+
+def _print_fitness(fitness):
+    """
+    Print a summary of our current fitness.
+
+    Args:
+        fitness (Fitness): The fitness details — CTL, ATL, and TSB.
+    """
+
+    # Fetch CTL, ATL, and TSB
+    ctl = str(int(fitness.ctl)) # Chronic training load (average TSS for last 42 days)
+    atl = str(int(fitness.atl)) # Acute training load (average TSS for last 7 days)
+    tsb = str(int(fitness.tsb)) # Training stress balance (CTL - ATL)
+
+    # Decorate the TSB according to range
+    if fitness.tsb < -30 or fitness.tsb >= -10 and fitness.tsb >= 10:
+        tsb = "\x1B[38;5;196m" + tsb + "\x1B[0m"
+    elif fitness.tsb < -10:
+        tsb = "\x1B[38;5;41m" + tsb + "\x1B[0m"
+    else:
+        tsb = "\x1B[38;5;220m" + tsb + "\x1B[0m"
+    
+    # Show the fitness values
+    print()
+    print(f"Fitness (CTL) ... {ctl}")
+    print(f"Fatigue (ATL) ... {atl}")
+    print(f"Form (TSB) ...... {tsb}")
+    print()
 
 
 def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
