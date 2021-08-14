@@ -13,6 +13,7 @@ from matplotlib.pyplot import figure
 from scipy.interpolate import make_interp_spline, BSpline
 from scipy.ndimage.filters import gaussian_filter1d
 
+
 def detail_plot_report(id: int):
     """
     Plot the result of an activity.
@@ -35,7 +36,6 @@ def detail_plot_report(id: int):
 
     # Done
     print()
-
 
 
 def _generate_power_plot(activity: Activity):

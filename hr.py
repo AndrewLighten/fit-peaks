@@ -26,7 +26,7 @@ def hr_report():
 
     # Find the maximum for each value.
     max = _load_max_values(activities)
-    
+
     # Totals for the current week
     week_distance_total = 0
     week_elevation_total = 0

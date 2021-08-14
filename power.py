@@ -6,9 +6,9 @@ from dataclasses import dataclass, field
 from persistence import Persistence
 from activity import Activity
 from athlete import get_ftp
-from calculations import calculate_transient_values, calculate_fitness
+from calculations import calculate_progressive_fitness, calculate_transient_values, calculate_fitness
 from calculation_data import AerobicDecoupling
-from formatting import format_aero_decoupling, format_aero_efficiency, format_variability_index
+from formatting import format_aero_decoupling, format_aero_efficiency, format_variability_index, format_atl, format_ctl, format_tsb
 
 
 @dataclass
@@ -169,7 +169,7 @@ def power_report(all: bool):
     if all:
         start_date = (datetime.now() - timedelta(days=365)).date()
     else:
-        start_date = (datetime.now() - timedelta(days=42)).date()
+        start_date = (datetime.now() - timedelta(days=90)).date()
 
     # Load the activity data.
     db = Persistence()
@@ -263,10 +263,6 @@ def power_report(all: bool):
     # Print the summary.
     _print_summary(max)
 
-    # Print the fitness
-    if not all:
-        _print_fitness(fitness)
-
 
 def _print_header():
     """
@@ -277,7 +273,7 @@ def _print_header():
         "                                                                                                                                                                     ┌──────────────────────────────────── Measurements in Watts ──────────────────────────────────┐"
     )
     print(
-        "ID      Date               Activity                                                                           Distance   Elevation   Start   Duration      Speed       5s    30s    60s     5m    10m    20m    30m    60m    90m   120m    Max    Avg   Norm    FTP    V/I    I/F    TSS   AeroDe   AeroEf"
+        "ID      Date               Activity                                                                           Distance   Elevation   Start   Duration      Speed       5s    30s    60s     5m    10m    20m    30m    60m    90m   120m    Max    Avg   Norm    FTP    V/I    I/F    TSS   AeroDe   AeroEf   CTL   ATL   TSB"
     )
     _print_separator()
 
@@ -334,16 +330,8 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
     p20min = _decorate(activity.peak_20min_power, max["20min"], p20min)
     p30min = _decorate(activity.peak_30min_power, max["30min"], p30min)
     p60min = _decorate(activity.peak_60min_power, max["60min"], p60min)
-    p90min = (
-        _decorate(activity.peak_90min_power, max["90min"], p90min)
-        if "90min" in max
-        else p90min
-    )
-    p120min = (
-        _decorate(activity.peak_120min_power, max["120min"], p120min)
-        if "120min" in max
-        else p120min
-    )
+    p90min = _decorate(activity.peak_90min_power, max["90min"], p90min) if "90min" in max else p90min
+    p120min = _decorate(activity.peak_120min_power, max["120min"], p120min) if "120min" in max else p120min
 
     p_max = _decorate(activity.max_power, max["pMax"], p_max)
     p_avg = _decorate(activity.avg_power, max["pAvg"], p_avg)
@@ -355,9 +343,25 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
     coupling_text = format_aero_decoupling(aerobic_decoupling=activity.aerobic_decoupling, width=6)
     aerobic_efficiency = format_aero_efficiency(aerobic_efficiency=activity.aerobic_efficiency, width=6)
 
+    # Format the CTL, ATL, and TSB
+    ctl = activity.ctl
+    atl = activity.atl
+    tsb = ctl - atl
+
+    ctl_text = format_ctl(ctl=ctl, width=3) if activity.first_for_day else "   "
+    atl_text = format_atl(atl=atl, width=3) if activity.first_for_day else "   "
+    tsb_text = format_tsb(tsb=tsb, width=3) if activity.first_for_day else "   "
+
+    if tsb < -30 or tsb >= 10:
+        tsb_text = "\x1B[38;5;196m" + tsb_text + "\x1B[0m" # red
+    elif tsb < -10:
+        tsb_text = "\x1B[38;5;41m" + tsb_text + "\x1B[0m" # green
+    else:
+        tsb_text = "\x1B[38;5;220m" + tsb_text + "\x1B[0m" # yellow
+
     # Print the data.
     print(
-        f"{rowid}   {date}   {activity_name}   {distance}      {elevation}   {start}   {duration}   {speed}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}   {p_max}   {p_avg}   {p_nor}    {ftp_text}   {variability_index}   {intensity_factor_text}   {tss_text}   {coupling_text}   {aerobic_efficiency}"
+        f"{rowid}   {date}   {activity_name}   {distance}      {elevation}   {start}   {duration}   {speed}   {p5sec}   {p30sec}   {p60sec}   {p5min}   {p10min}   {p20min}   {p30min}   {p60min}   {p90min}   {p120min}   {p_max}   {p_avg}   {p_nor}    {ftp_text}   {variability_index}   {intensity_factor_text}   {tss_text}   {coupling_text}   {aerobic_efficiency}   {ctl_text}   {atl_text}   {tsb_text}"
     )
 
 
@@ -442,6 +446,7 @@ def _print_summary(max: Dict[str, List[int]]):
         "──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────                 ────   ────"
     )
 
+
 def _print_fitness(fitness):
     """
     Print a summary of our current fitness.
@@ -451,9 +456,9 @@ def _print_fitness(fitness):
     """
 
     # Fetch CTL, ATL, and TSB
-    ctl = str(int(fitness.ctl)) # Chronic training load (average TSS for last 42 days)
-    atl = str(int(fitness.atl)) # Acute training load (average TSS for last 7 days)
-    tsb = str(int(fitness.tsb)) # Training stress balance (CTL - ATL)
+    ctl = str(int(fitness.ctl))  # Chronic training load (average TSS for last 42 days)
+    atl = str(int(fitness.atl))  # Acute training load (average TSS for last 7 days)
+    tsb = str(int(fitness.tsb))  # Training stress balance (CTL - ATL)
 
     # Decorate the TSB according to range
     if fitness.tsb < -30 or fitness.tsb >= -10 and fitness.tsb >= 10:
@@ -462,7 +467,7 @@ def _print_fitness(fitness):
         tsb = "\x1B[38;5;41m" + tsb + "\x1B[0m"
     else:
         tsb = "\x1B[38;5;220m" + tsb + "\x1B[0m"
-    
+
     # Show the fitness values
     print()
     print(f"Fitness (CTL) ... {ctl}")
@@ -563,7 +568,7 @@ def _print_separator():
     Print a commonly used separator.
     """
     print(
-        "─────   ────────────────   ────────────────────────────────────────────────────────────────────────────────   ────────   ─────────   ─────   ────────   ──────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ──────   ──────"
+        "─────   ────────────────   ────────────────────────────────────────────────────────────────────────────────   ────────   ─────────   ─────   ────────   ──────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ──────   ──────   ───   ───   ───"
     )
 
 
@@ -577,6 +582,7 @@ def _calculate_transient_values(activities: List[Activity]):
 
     for activity in activities:
         calculate_transient_values(activity)
+    calculate_progressive_fitness(activities=activities)
 
 
 def _load_max_values(activities: List[Activity]) -> Dict[str, List[int]]:

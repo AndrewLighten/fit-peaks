@@ -66,3 +66,6 @@ class Activity:
     speed_in_kmhr: float = None
     aerobic_decoupling: AerobicDecoupling = None
     aerobic_efficiency: float = None
+    ctl: int = None
+    atl: int = None
+    first_for_day: bool = True

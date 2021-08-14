@@ -54,6 +54,27 @@ def format_aero_efficiency(*, aerobic_efficiency: float, width: int = 0) -> str:
     return aerobic_efficiency_text
 
 
+def format_ctl(*, ctl: int, width: int = 0) -> str:
+    ctl_text: str = str(ctl)
+    if width > 0:
+        ctl_text = ctl_text.rjust(width)
+    return ctl_text
+
+
+def format_atl(*, atl: int, width: int = 0) -> str:
+    atl_text: str = str(atl)
+    if width > 0:
+        atl_text = atl_text.rjust(width)
+    return atl_text
+
+
+def format_tsb(*, tsb: int, width: int = 0) -> str:
+    tsb_text: str = str(tsb)
+    if width > 0:
+        tsb_text = tsb_text.rjust(width)
+    return tsb_text
+
+
 def format_variability_index(*, activity: Activity, width: int = 0) -> str:
     """
     Format a representation of the variability index.

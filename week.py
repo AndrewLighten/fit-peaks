@@ -292,3 +292,4 @@ def _calculate_transient_values(activities: typing.List[Activity]):
 
     for activity in activities:
         calculations.calculate_transient_values(activity)
+    calculations.calculate_progressive_fitness(activities=activities)

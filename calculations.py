@@ -37,6 +37,86 @@ def calculate_transient_values(activity: Activity):
         activity.aerobic_efficiency = activity.normalised_power / activity.avg_hr
 
 
+def calculate_progressive_fitness(activities: List[Activity]):
+    """
+    Calculate the CTL and ATL for each day in the list of activities.
+
+    Args:
+        activities (List[Activity]): The list of activities to calculate for.
+    """
+
+    # Let's start by setting the 'first_for_day' flag for each activity; we need this later
+    _determine_first_for_day(activities=activities)
+
+    # Now we'll walk through the activities and calculate the CTL and ATL for each one
+    for idx, activity in enumerate(activities):
+
+        # If it's not the first for the date, copy from the previous activity
+        if not activity.first_for_day:
+            activity.ctl = activities[idx - 1].ctl
+            activity.atl = activities[idx - 1].atl
+            continue
+
+        # It's the first activity for the day — let's calculate CTL and ATL for this day
+
+        # Step 1 — grab the date
+        activity_date = activity.start_time.date()
+
+        # Step 2 — determine the earliest date we want in the CTL and ATL
+        earliest_date_for_ctl = activity_date - datetime.timedelta(days=42)
+        earliest_date_for_atl = activity_date - datetime.timedelta(days=7)
+
+        # Step 3 — setup TSS buffers for CTL and ATL
+        ctl_tss_sum: int = 0
+        ctl_tss_count: int = 1
+        atl_tss_sum: int = 0
+        atl_tss_count: int = 1
+
+        # Step 4 — walk backward and sum TSS
+        for i in range(idx - 1, 0, -1):
+            subject = activities[i]
+            subject_date = subject.start_time.date()
+            if subject_date < earliest_date_for_ctl:
+                break
+            ctl_tss_sum += subject.tss
+            if subject.first_for_day:
+                ctl_tss_count += 1
+            if subject_date < earliest_date_for_atl:
+                continue
+            atl_tss_sum += subject.tss
+            if subject.first_for_day:
+                atl_tss_count += 1
+
+        # Step 5 — store the CTL and ATL for this activity
+        activity.ctl = int(ctl_tss_sum / 42) if ctl_tss_count > 0 else 0
+        activity.atl = int(atl_tss_sum / 7) if atl_tss_count > 0 else 0
+
+
+def _determine_first_for_day(activities: List[Activity]):
+    """
+    Determine which activity is the first of each day (give we have multiple activities per day)
+
+    Args:
+        activities (List[Activity]): The list of activities to separate by day
+    """
+
+    # Make sure we got an activity list
+    assert activities
+
+    # Buffer for the currennt date
+    current_date: datetime.date = None
+
+    # Visit each activity. When the date changes from the previous activity, it's the first
+    # one for the date.
+    for activity in activities:
+        activity_date = activity.start_time.date()
+        if current_date is None or activity_date != current_date:
+            activity.first_for_day = True
+            current_date = activity_date
+        else:
+            activity.first_for_day = False
+
+
 def calculate_aerobic_decoupling(activity: Activity) -> Optional[AerobicDecoupling]:
     """
     Calculate the aerobic decoupling for an activity.
@@ -89,6 +169,7 @@ def calculate_fitness(*, activities: List[Activity]) -> Fitness:
     # Make sure we've got TSS for each activity
     for activity in activities:
         calculate_transient_values(activity)
+    calculate_progressive_fitness(activities=activities)
 
     # Calculate CTL and ATL
     ctl = _calculate_training_load(activities=activities, days=42)
@@ -211,6 +292,7 @@ def _calculate_training_load(*, activities: List[Activity], days: int) -> int:
 
     # Average the tss
     return sum(tss_list) / len(tss_list)
+
 
 def _calculate_daily_tss(*, activities: List[Activity], days: int) -> List[int]:
     """
