@@ -188,7 +188,7 @@ def power_report(all: bool):
 
     # Calculate the start date we should use
     if all:
-        start_date = (datetime.now() - timedelta(days=365)).date()
+        start_date = datetime(2001, 1, 1)
     else:
         start_date = (datetime.now() - timedelta(days=90)).date()
 
@@ -404,6 +404,9 @@ def _print_summary(max: Dict[str, List[int]]):
     pNor_0 = (str(max["pNor"][0]) if "pNor" in max else "").rjust(4)
     if_0 = (format(max["IF"][0], ".2f").rjust(4)) if "IF" in max else "".rjust(4)
     tss_0 = (str(max["tss"][0]) if "tss" in max else "").rjust(4)
+    ctl_0 = (str(max["ctl"][0]) if "ctl" in max else "").rjust(3)
+    atl_0 = (str(max["atl"][0]) if "atl" in max else "").rjust(3)
+    tsb_0 = _get_decorated_tsb(tsb=max["tsb"][0]) if "tsb" in max else "   "
 
     p5sec_1 = (str(max["5sec"][1]) if "5sec" in max else "").rjust(4)
     p30sec_1 = (str(max["30sec"][1]) if "30sec" in max else "").rjust(4)
@@ -414,12 +417,15 @@ def _print_summary(max: Dict[str, List[int]]):
     p30min_1 = (str(max["30min"][1]) if "30min" in max else "").rjust(4)
     p60min_1 = (str(max["60min"][1]) if "60min" in max else "").rjust(4)
     p90min_1 = (str(max["90min"][1]) if "90min" in max else "").rjust(4)
-    p120min_1 = (str(max["120min"][1]) if "120min" in max else "").rjust(4)
+    p120min_1 = (str(max["120min"][1]) if "120min" in max and len(max["120min"]) > 1 else "").rjust(4)
     pMax_1 = (str(max["pMax"][1]) if "pMax" in max else "").rjust(4)
     pAvg_1 = (str(max["pAvg"][1]) if "pAvg" in max else "").rjust(4)
     pNor_1 = (str(max["pNor"][1]) if "pNor" in max else "").rjust(4)
     if_1 = (format(max["IF"][1], ".2f").rjust(4)) if "IF" in max else "".rjust(4)
     tss_1 = (str(max["tss"][1]) if "tss" in max else "").rjust(4)
+    ctl_1 = (str(max["ctl"][1]) if "ctl" in max else "").rjust(3)
+    atl_1 = (str(max["atl"][1]) if "atl" in max else "").rjust(3)
+    tsb_1 = _get_decorated_tsb(tsb=max["tsb"][1]) if "tsb" in max else "   "
 
     p5sec_2 = (str(max["5sec"][2]) if "5sec" in max else "").rjust(4)
     p30sec_2 = (str(max["30sec"][2]) if "30sec" in max else "").rjust(4)
@@ -436,6 +442,10 @@ def _print_summary(max: Dict[str, List[int]]):
     pNor_2 = (str(max["pNor"][2]) if "pNor" in max else "").rjust(4)
     if_2 = (format(max["IF"][2], ".2f").rjust(4)) if "IF" in max else "".rjust(4)
     tss_2 = (str(max["tss"][2]) if "tss" in max else "").rjust(4)
+    ctl_2 = (str(max["ctl"][2]) if "ctl" in max else "").rjust(3)
+    atl_2 = (str(max["atl"][2]) if "atl" in max else "").rjust(3)
+    tsb_2 = (str(max["tsb"][2]) if "tsb" in max else "").rjust(3)
+    tsb_2 = _get_decorated_tsb(tsb=max["tsb"][2]) if "tsb" in max else "   "
 
     # Print the result.
     print()
@@ -443,22 +453,22 @@ def _print_summary(max: Dict[str, List[int]]):
         "                                                                                                                                                                     ┌──────────────────────────────── Measurements in Watts ───────────────────────────────┐"
     )
     print(
-        "                                                                                                                                                                       5s    30s    60s     5m    10m    20m    30m    60m    90m   120m    Max    Avg   Norm                  I/F    TSS"
+        "                                                                                                                                                                       5s    30s    60s     5m    10m    20m    30m    60m    90m   120m    Max    Avg   Norm                  I/F    TSS                     CTL   ATL   TSB"
     )
     print(
-        "──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────                 ────   ────"
+        "──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────                 ────   ────                     ───   ───   ───"
     )
     print(
-        f"Peak values                                                                                                                                                  \x1B[37;41mFirst\x1B[0m   {p5sec_0}   {p30sec_0}   {p60sec_0}   {p5min_0}   {p10min_0}   {p20min_0}   {p30min_0}   {p60min_0}   {p90min_0}   {p120min_0}   {pMax_0}   {pAvg_0}   {pNor_0}                 {if_0}   {tss_0}"
+        f"Peak values                                                                                                                                                  \x1B[37;41mFirst\x1B[0m   {p5sec_0}   {p30sec_0}   {p60sec_0}   {p5min_0}   {p10min_0}   {p20min_0}   {p30min_0}   {p60min_0}   {p90min_0}   {p120min_0}   {pMax_0}   {pAvg_0}   {pNor_0}                 {if_0}   {tss_0}                     {ctl_0}   {atl_0}   {tsb_0}"
     )
     print(
-        f"                                                                                                                                                            \x1B[30;43mSecond\x1B[0m   {p5sec_1}   {p30sec_1}   {p60sec_1}   {p5min_1}   {p10min_1}   {p20min_1}   {p30min_1}   {p60min_1}   {p90min_1}   {p120min_1}   {pMax_1}   {pAvg_1}   {pNor_1}                 {if_1}   {tss_1}"
+        f"                                                                                                                                                            \x1B[30;43mSecond\x1B[0m   {p5sec_1}   {p30sec_1}   {p60sec_1}   {p5min_1}   {p10min_1}   {p20min_1}   {p30min_1}   {p60min_1}   {p90min_1}   {p120min_1}   {pMax_1}   {pAvg_1}   {pNor_1}                 {if_1}   {tss_1}                     {ctl_1}   {atl_1}   {tsb_1}"
     )
     print(
-        f"                                                                                                                                                             \x1B[30;47mThird\x1B[0m   {p5sec_2}   {p30sec_2}   {p60sec_2}   {p5min_2}   {p10min_2}   {p20min_2}   {p30min_2}   {p60min_2}   {p90min_2}   {p120min_2}   {pMax_2}   {pAvg_2}   {pNor_2}                 {if_2}   {tss_2}"
+        f"                                                                                                                                                             \x1B[30;47mThird\x1B[0m   {p5sec_2}   {p30sec_2}   {p60sec_2}   {p5min_2}   {p10min_2}   {p20min_2}   {p30min_2}   {p60min_2}   {p90min_2}   {p120min_2}   {pMax_2}   {pAvg_2}   {pNor_2}                 {if_2}   {tss_2}                     {ctl_2}   {atl_2}   {tsb_2}"
     )
     print(
-        "──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────                 ────   ────"
+        "──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────                 ────   ────                     ───   ───   ───"
     )
 
 
@@ -659,10 +669,16 @@ def _load_max_values(activities: List[Activity]) -> Dict[str, List[int]]:
         _max(int(activity.normalised_power), "pNor")
         _max(activity.intensity_factor, "IF")
         _max(activity.tss, "tss")
+        _max(activity.ctl, "ctl")
+        _max(activity.atl, "atl")
+        _max(activity.ctl-activity.atl, "tsb")
 
     # Now sort each list
     for key in max:
         max[key].sort(reverse=True)
+
+    # The one exception is tsb… we want that sorted in ascending order
+    max["tsb"].sort()
 
     # Done.
     return max

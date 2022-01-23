@@ -51,7 +51,11 @@ def week_report():
 
     # Fetch the last week's activities.
     db = persistence.Persistence()
-    start_date = (datetime.datetime.now() - datetime.timedelta(days=7)).date()
+
+    utc_hours = datetime.datetime.utcnow().astimezone().utcoffset().total_seconds() / 3600
+    start = datetime.datetime.today()
+    today_local = datetime.datetime(year=start.year, month=start.month, day=start.day, hour=0, minute=0, second=0)
+    start_date = (today_local - datetime.timedelta(days=6, hours=utc_hours))
     if not (activities := db.load_for_week(start_date)):
         print(f"No activities this week")
         return

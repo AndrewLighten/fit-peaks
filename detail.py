@@ -6,7 +6,7 @@ from activity import Activity
 from athlete import get_ftp, get_hr, HeartRateData
 from typing import List
 from collections import namedtuple, Counter
-from calculations import calculate_transient_values
+from calculations import calculate_transient_values, calculate_progressive_fitness
 from calculation_data import AerobicDecoupling
 from formatting import format_aero_decoupling, format_aero_efficiency, format_variability_index, LeftRightPrinter
 from datetime import timedelta
