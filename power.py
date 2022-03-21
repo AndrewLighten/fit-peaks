@@ -315,6 +315,8 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
     distance = (format(round(activity.distance / 1000, 2), ".2f") + "km").rjust(8)
     elevation = (format(activity.elevation, ",d") + "m").rjust(6) if activity.elevation else "".rjust(6)
     activity_name = activity.activity_name.ljust(80) if activity.activity_name else "(Unknown)".ljust(80)
+    if len(activity_name) > 80:
+        activity_name = activity_name[:77] + '...'
     speed = (format(activity.speed_in_kmhr, ".2f") + "km/hr").rjust(10)
 
     # Find the power figures

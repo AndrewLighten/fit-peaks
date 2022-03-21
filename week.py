@@ -161,6 +161,8 @@ def _print_activity_detail(activity: Activity, new_day: bool):
     distance = (format(round(activity.distance / 1000, 2), ".2f") + "km").rjust(8)
     elevation = (format(activity.elevation, ",d") + "m").rjust(6) if activity.elevation else "".rjust(6)
     activity_name = activity.activity_name.ljust(80) if activity.activity_name else "".ljust(80)
+    if len(activity_name) > 80:
+        activity_name = activity_name[:77] + '...'
     speed = (format(activity.speed_in_kmhr, ".2f") + "km/hr").rjust(10)
     p_max = str(int(activity.max_power)).rjust(4)
     p_avg = str(int(activity.avg_power)).rjust(4)
