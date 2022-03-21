@@ -2,3 +2,4 @@ __pycache__/
 peaks.dat
 .mypy_cache/
 .DS_Store
+build
