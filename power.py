@@ -437,7 +437,7 @@ def _print_summary(max: Dict[str, List[int]]):
     p20min_2 = (str(max["20min"][2]) if "20min" in max else "").rjust(4)
     p30min_2 = (str(max["30min"][2]) if "30min" in max else "").rjust(4)
     p60min_2 = (str(max["60min"][2]) if "60min" in max else "").rjust(4)
-    p90min_2 = (str(max["90min"][2]) if "90min" in max else "").rjust(4)
+    p90min_2 = (str(max["90min"][2]) if "90min" in max  and len(max["90min"]) > 2 else "").rjust(4)
     p120min_2 = (str(max["120min"][2]) if "120min" in max and len(max["120min"]) > 2 else "").rjust(4)
     pMax_2 = (str(max["pMax"][2]) if "pMax" in max else "").rjust(4)
     pAvg_2 = (str(max["pAvg"][2]) if "pAvg" in max else "").rjust(4)
