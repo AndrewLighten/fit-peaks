@@ -277,7 +277,7 @@ def _print_week_summary(weekly_totals: WeeklyTotals):
         f"\x1B[1m                                                                                           Averages per day           {avg_distance}       {avg_elevation}   {avg_duration}                                                 {avg_tss}\x1B[0m"
     )
     print(
-        f"\x1B[1m                                                                        Maximums from individual activities           {max_distance}       {max_elevation}   {max_duration}   {max_speed}   {max_pmax}   {max_pavg}   {max_pnor}        {max_if}   {max_tss}\x1B[0m"
+        f"\x1B[1m                                                                          Maxima from individual activities           {max_distance}       {max_elevation}   {max_duration}   {max_speed}   {max_pmax}   {max_pavg}   {max_pnor}        {max_if}   {max_tss}\x1B[0m"
     )
 
 

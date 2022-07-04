@@ -238,7 +238,7 @@ def power_report(all: bool):
         prevailing_ftp = activity_ftp
 
         # Print the detail.
-        _print_detail(activity=activity, max=max, new_ftp=new_ftp, new_day=new_day)
+        _print_detail(activity=activity, max=max, new_ftp=new_ftp, new_day=new_day, new_week=not any_data_since_header)
         new_day = False
         any_data_since_header = True
 
@@ -292,15 +292,15 @@ def _print_header():
     """
     print()
     print(
-        "                                                                                                                                                                     ┌──────────────────────────────────── Measurements in Watts ──────────────────────────────────┐"
+        "                                                                                                                             ┌──────────────────────────────────── Measurements in Watts ──────────────────────────────────┐"
     )
     print(
-        "ID      Date               Activity                                                                           Distance   Elevation   Start   Duration      Speed       5s    30s    60s     5m    10m    20m    30m    60m    90m   120m    Max    Avg   Norm    FTP    V/I    I/F    TSS   AeroDe   AeroEf   CTL   ATL   TSB"
+        "ID      Date               Activity                                   Distance   Elevation   Start   Duration      Speed       5s    30s    60s     5m    10m    20m    30m    60m    90m   120m    Max    Avg   Norm    FTP    V/I    I/F    TSS   AeroDe   AeroEf   CTL   ATL   TSB"
     )
     _print_separator()
 
 
-def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: bool, new_day: bool):
+def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: bool, new_day: bool, new_week: bool):
     """
     Print the detail for a particular activity.
     """
@@ -314,9 +314,9 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
     # Find the activity name
     distance = (format(round(activity.distance / 1000, 2), ".2f") + "km").rjust(8)
     elevation = (format(activity.elevation, ",d") + "m").rjust(6) if activity.elevation else "".rjust(6)
-    activity_name = activity.activity_name.ljust(80) if activity.activity_name else "(Unknown)".ljust(80)
-    if len(activity_name) > 80:
-        activity_name = activity_name[:77] + '...'
+    activity_name = activity.activity_name.ljust(40) if activity.activity_name else "(Unknown)".ljust(40)
+    if len(activity_name) > 40:
+        activity_name = f'{activity_name[:37]}...'
     speed = (format(activity.speed_in_kmhr, ".2f") + "km/hr").rjust(10)
 
     # Find the power figures
@@ -327,8 +327,8 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
     variability_index = format_variability_index(activity=activity, width=4)
     ftp_text = str(activity.ftp)
     if new_ftp:
-        ftp_text = "\x1B[38;5;40m" + ftp_text + "\x1B[0m"
-    else:
+        ftp_text = "\x1B[37;44m" + ftp_text + "\x1B[0m"
+    elif not new_week:
         ftp_text = "\x1B[38;5;238m" + ftp_text + "\x1B[0m"
     intensity_factor_text = format(activity.intensity_factor, ".2f")
     tss_text = format(activity.tss, ".0f").rjust(4)
@@ -452,25 +452,25 @@ def _print_summary(max: Dict[str, List[int]]):
     # Print the result.
     print()
     print(
-        "                                                                                                                                                                     ┌──────────────────────────────── Measurements in Watts ───────────────────────────────┐"
+        "                                                                                                                             ┌──────────────────────────────── Measurements in Watts ───────────────────────────────┐"
     )
     print(
-        "                                                                                                                                                                       5s    30s    60s     5m    10m    20m    30m    60m    90m   120m    Max    Avg   Norm                  I/F    TSS                     CTL   ATL   TSB"
+        "                                                                                                                               5s    30s    60s     5m    10m    20m    30m    60m    90m   120m    Max    Avg   Norm                  I/F    TSS                     CTL   ATL   TSB"
     )
     print(
-        "──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────                 ────   ────                     ───   ───   ───"
+        "──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────                 ────   ────                     ───   ───   ───"
     )
     print(
-        f"Peak values                                                                                                                                                  \x1B[37;41mFirst\x1B[0m   {p5sec_0}   {p30sec_0}   {p60sec_0}   {p5min_0}   {p10min_0}   {p20min_0}   {p30min_0}   {p60min_0}   {p90min_0}   {p120min_0}   {pMax_0}   {pAvg_0}   {pNor_0}                 {if_0}   {tss_0}                     {ctl_0}   {atl_0}   {tsb_0}"
+        f"Peak values                                                                                                          \x1B[37;41mFirst\x1B[0m   {p5sec_0}   {p30sec_0}   {p60sec_0}   {p5min_0}   {p10min_0}   {p20min_0}   {p30min_0}   {p60min_0}   {p90min_0}   {p120min_0}   {pMax_0}   {pAvg_0}   {pNor_0}                 {if_0}   {tss_0}                     {ctl_0}   {atl_0}   {tsb_0}"
     )
     print(
-        f"                                                                                                                                                            \x1B[30;43mSecond\x1B[0m   {p5sec_1}   {p30sec_1}   {p60sec_1}   {p5min_1}   {p10min_1}   {p20min_1}   {p30min_1}   {p60min_1}   {p90min_1}   {p120min_1}   {pMax_1}   {pAvg_1}   {pNor_1}                 {if_1}   {tss_1}                     {ctl_1}   {atl_1}   {tsb_1}"
+        f"                                                                                                                    \x1B[30;43mSecond\x1B[0m   {p5sec_1}   {p30sec_1}   {p60sec_1}   {p5min_1}   {p10min_1}   {p20min_1}   {p30min_1}   {p60min_1}   {p90min_1}   {p120min_1}   {pMax_1}   {pAvg_1}   {pNor_1}                 {if_1}   {tss_1}                     {ctl_1}   {atl_1}   {tsb_1}"
     )
     print(
-        f"                                                                                                                                                             \x1B[30;47mThird\x1B[0m   {p5sec_2}   {p30sec_2}   {p60sec_2}   {p5min_2}   {p10min_2}   {p20min_2}   {p30min_2}   {p60min_2}   {p90min_2}   {p120min_2}   {pMax_2}   {pAvg_2}   {pNor_2}                 {if_2}   {tss_2}                     {ctl_2}   {atl_2}   {tsb_2}"
+        f"                                                                                                                     \x1B[30;47mThird\x1B[0m   {p5sec_2}   {p30sec_2}   {p60sec_2}   {p5min_2}   {p10min_2}   {p20min_2}   {p30min_2}   {p60min_2}   {p90min_2}   {p120min_2}   {pMax_2}   {pAvg_2}   {pNor_2}                 {if_2}   {tss_2}                     {ctl_2}   {atl_2}   {tsb_2}"
     )
     print(
-        "──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────                 ────   ────                     ───   ───   ───"
+        "──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────                 ────   ────                     ───   ───   ───"
     )
 
 
@@ -586,13 +586,13 @@ def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
     max_pnor = _decorate(weekly_figures.max_pnor, max["pNor"], max_pnor)
 
     print(
-        f"                                                                                              Weekly totals   {distance}      {elevation}           {duration_total}                                                                                                                                {tss_total_text}"
+        f"                                                      Weekly totals   {distance}      {elevation}           {duration_total}                                                                                                                                {tss_total_text}"
     )
     print(
-        f"                                                                                            Weekly averages   {distance_average}      {elevation_average}           {duration_average}                {avg_5sec}   {avg_30sec}   {avg_60sec}   {avg_5min}   {avg_10min}   {avg_20min}   {avg_30min}   {avg_60min}   {avg_90min}   {avg_120min}                                             {tss_average_text}                     {ctl_average_text}   {atl_average_text}   {tsb_average_text}"
+        f"                                                    Weekly averages   {distance_average}      {elevation_average}           {duration_average}                {avg_5sec}   {avg_30sec}   {avg_60sec}   {avg_5min}   {avg_10min}   {avg_20min}   {avg_30min}   {avg_60min}   {avg_90min}   {avg_120min}                                             {tss_average_text}                     {ctl_average_text}   {atl_average_text}   {tsb_average_text}"
     )
     print(
-        f"                                                                                              Weekly maxima   {distance_maximum}      {elevation_maximum}           {duration_maximum}                {max_5sec}   {max_30sec}   {max_60sec}   {max_5min}   {max_10min}   {max_20min}   {max_30min}   {max_60min}   {max_90min}   {max_120min}   {max_pmax}   {max_pavg}   {max_pnor}                 {max_if}   {tss_maximum_text}                     {ctl_maximum}   {atl_maximum}   {tsb_maximum}"
+        f"                                                      Weekly maxima   {distance_maximum}      {elevation_maximum}           {duration_maximum}                {max_5sec}   {max_30sec}   {max_60sec}   {max_5min}   {max_10min}   {max_20min}   {max_30min}   {max_60min}   {max_90min}   {max_120min}   {max_pmax}   {max_pavg}   {max_pnor}                 {max_if}   {tss_maximum_text}                     {ctl_maximum}   {atl_maximum}   {tsb_maximum}"
     )
     print()
 
@@ -611,7 +611,7 @@ def _print_separator():
     Print a commonly used separator.
     """
     print(
-        "─────   ────────────────   ────────────────────────────────────────────────────────────────────────────────   ────────   ─────────   ─────   ────────   ──────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ──────   ──────   ───   ───   ───"
+        "─────   ────────────────   ────────────────────────────────────────   ────────   ─────────   ─────   ────────   ──────────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ────   ──────   ──────   ───   ───   ───"
     )
 
 
