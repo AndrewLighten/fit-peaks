@@ -27,6 +27,8 @@ class WeeklyFigures:
 
     distance_total: int = 0
     elevation_total: int = 0
+    if_total: float = 0
+    if_count: int = 0
     tss_total: int = 0
     ctl_total: int = 0
     atl_total: int = 0
@@ -169,7 +171,9 @@ class WeeklyFigures:
         if self.max_pnor is None or pnor > self.max_pnor:
             self.max_pnor = pnor
 
-    def add_if(self, intensity_factor: int):
+    def add_if(self, intensity_factor: float):
+        self.if_total += intensity_factor
+        self.if_count += 1
         if self.max_if is None or intensity_factor > self.max_if:
             self.max_if = intensity_factor
 
@@ -528,6 +532,7 @@ def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
     duration_average = str(duration_average_delta).split(".")[0].rjust(8)
     duration_maximum = str(weekly_figures.max_duration).split(".")[0].rjust(8)
 
+    if_average_text = (format(round(weekly_figures.if_total / weekly_figures.if_count,2), ".2f")).rjust(4)
     tss_average_text = str(int(weekly_figures.tss_total / weekly_figures.work_days)).rjust(4)
     tss_total_text = str(int(weekly_figures.tss_total)).rjust(4)
     tss_maximum_text = str(int(weekly_figures.max_tss)).rjust(4)
@@ -589,7 +594,7 @@ def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
         f"                                                      Weekly totals   {distance}      {elevation}           {duration_total}                                                                                                                                {tss_total_text}"
     )
     print(
-        f"                                                    Weekly averages   {distance_average}      {elevation_average}           {duration_average}                {avg_5sec}   {avg_30sec}   {avg_60sec}   {avg_5min}   {avg_10min}   {avg_20min}   {avg_30min}   {avg_60min}   {avg_90min}   {avg_120min}                                             {tss_average_text}                     {ctl_average_text}   {atl_average_text}   {tsb_average_text}"
+        f"                                                    Weekly averages   {distance_average}      {elevation_average}           {duration_average}                {avg_5sec}   {avg_30sec}   {avg_60sec}   {avg_5min}   {avg_10min}   {avg_20min}   {avg_30min}   {avg_60min}   {avg_90min}   {avg_120min}                                      {if_average_text}   {tss_average_text}                     {ctl_average_text}   {atl_average_text}   {tsb_average_text}"
     )
     print(
         f"                                                      Weekly maxima   {distance_maximum}      {elevation_maximum}           {duration_maximum}                {max_5sec}   {max_30sec}   {max_60sec}   {max_5min}   {max_10min}   {max_20min}   {max_30min}   {max_60min}   {max_90min}   {max_120min}   {max_pmax}   {max_pavg}   {max_pnor}                 {max_if}   {tss_maximum_text}                     {ctl_maximum}   {atl_maximum}   {tsb_maximum}"
