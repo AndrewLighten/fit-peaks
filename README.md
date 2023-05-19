@@ -1,4 +1,4 @@
-![GitHub pull requests](https://img.shields.io/github/issues-pr/andrewlighten/fit-peaks)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/andrewlighten/fit-peaks) https://img.shields.io/github/issues/AndrewLighten/fit-peaks
 
 # README for fit peaks
 
