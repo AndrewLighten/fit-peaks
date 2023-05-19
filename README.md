@@ -1,3 +1,5 @@
+![GitHub pull requests](https://img.shields.io/github/issues-pr/andrewlighten/fit-peaks)
+
 # README for fit peaks
 
 This is a small project that fetches fitness peak data from Zwift and reports on it.
