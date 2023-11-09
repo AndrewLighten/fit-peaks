@@ -7,6 +7,7 @@ verify_ssl = true
 
 [packages]
 matplotlib = "*"
+fitpeaks = {path = "."}
 
 [requires]
-python_version = "3.8"
+python_version = "3.11"

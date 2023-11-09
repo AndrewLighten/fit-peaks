@@ -55,7 +55,7 @@ def week_report():
     utc_hours = datetime.datetime.utcnow().astimezone().utcoffset().total_seconds() / 3600
     start = datetime.datetime.today()
     today_local = datetime.datetime(year=start.year, month=start.month, day=start.day, hour=0, minute=0, second=0)
-    start_date = (today_local - datetime.timedelta(days=6, hours=utc_hours))
+    start_date = today_local - datetime.timedelta(days=6, hours=utc_hours)
     if not (activities := db.load_for_week(start_date)):
         print(f"No activities this week")
         return
@@ -76,7 +76,7 @@ def week_report():
 def _print_activity_details(activities: typing.List[Activity], weekly_totals: WeeklyTotals):
     """
     Print the details for our activities.
-    
+
     Args:
         activities:    The list of activities.
         weekly_totals: The weekly totals we're building up.
@@ -147,7 +147,7 @@ def _print_separator():
 def _print_activity_detail(activity: Activity, new_day: bool):
     """
     Print the details for a particular activity.
-    
+
     Args:
         activity: The activity to print.
         new_day:  True if this is the first report for a new day; otherwise, False.
@@ -162,7 +162,7 @@ def _print_activity_detail(activity: Activity, new_day: bool):
     elevation = (format(activity.elevation, ",d") + "m").rjust(6) if activity.elevation else "".rjust(6)
     activity_name = activity.activity_name.ljust(80) if activity.activity_name else "".ljust(80)
     if len(activity_name) > 80:
-        activity_name = activity_name[:77] + '...'
+        activity_name = activity_name[:77] + "..."
     speed = (format(activity.speed_in_kmhr, ".2f") + "km/hr").rjust(10)
     p_max = str(int(activity.max_power)).rjust(4)
     p_avg = str(int(activity.avg_power)).rjust(4)
@@ -180,7 +180,7 @@ def _print_activity_detail(activity: Activity, new_day: bool):
 def _accumulate_day_detail(activity: Activity, daily_totals: DailyTotals, weekly_totals: WeeklyTotals):
     """
     Accumulate the details for a day.
-    
+
     Args:
         activity:      The activity to add into our totals.
         daily_totals:  The day's totals.
@@ -220,7 +220,7 @@ def _accumulate_day_detail(activity: Activity, daily_totals: DailyTotals, weekly
 def _print_day_summary(daily_totals: DailyTotals):
     """
     Print a summary of a day.
-    
+
     Args:
         daily_totals: The day's totals.
     """
@@ -240,7 +240,7 @@ def _print_day_summary(daily_totals: DailyTotals):
 def _print_week_summary(weekly_totals: WeeklyTotals):
     """
     Print a summary of the week.
-    
+
     Args:
         weekly_totals: The week's totals.
     """
@@ -291,7 +291,7 @@ def _print_fitness(fitness: calculation_data.Fitness):
 def _calculate_transient_values(activities: typing.List[Activity]):
     """
     Calculate the transient values for each activity.
-    
+
     Args:
         activities: The activities to calculate transient values for.
     """

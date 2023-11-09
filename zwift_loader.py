@@ -85,10 +85,10 @@ def _find_new_activities(known_ids: set) -> Optional[List[Any]]:
           list is screwed up. If we find two new activites, for example, the newest
           one will have a lower rowid than the older one. We want to loade the
           older one first.
-    
+
     Args:
         known_ids: The list of IDs we already know about.
-    
+
     Returns:
         The list of activities to load, in the order they should be loaded.
     """
@@ -143,10 +143,10 @@ def _find_new_activities(known_ids: set) -> Optional[List[Any]]:
 def _load_fit_file_content(s3_url: str) -> Optional[Activity]:
     """
     Load the content of a FIT file into an activity.
-    
+
     Args:
         s3_url: The S3 URL to load from.
-    
+
     Returns:
         The activity, if it loaded ok.
     """
@@ -176,7 +176,7 @@ def _load_fit_file_content(s3_url: str) -> Optional[Activity]:
 def _load_zwift_credentials() -> Tuple[str, str, str]:
     """
     Load our Zwift credentials.
-    
+
     Returns:
         A tuple containing the Zwift username, password, and player ID.
     """

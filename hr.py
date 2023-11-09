@@ -9,9 +9,9 @@ from activity import Activity
 def hr_report():
     """
     Print a HR report.
-    
+
     This will fetch all the peaks from the database, then:
-    
+
     - Find the maximum for each HR peak (e.g., max 5 seconds, 30 seconds, etc).
     - Print the peak HR for each activity, sorted in date order with a break
       between each week.
@@ -215,7 +215,7 @@ def _print_detail(peak: Activity, max: Dict[str, List[int]]):
 def _print_summary(max: Dict[str, List[int]]):
     """
     Print a summary of our highest ever peaks.
-    
+
     Args:
         max: Our collection of maximum peaks.
     """
@@ -350,10 +350,10 @@ def _print_separator():
 def _load_max_values(activities: List[Activity]) -> Dict[str, List[int]]:
     """
     Given a list of activity peaks, find the overall maximum for each of those peaks.
-    
+
     Args:
         activities: Our activity data.
-    
+
     Returns:
         Dict[str, int]: The maximum peak for each time period.
     """

@@ -7,11 +7,11 @@ from itertools import zip_longest
 def format_aero_decoupling(*, aerobic_decoupling: AerobicDecoupling, width: int = 0) -> str:
     """
     Format a representation of the aerobic decoupling.
-    
+
     Args:
         aerobic_decoupling: The aerobic decoupling data.
         width: The width to format to.
-    
+
     Returns:
         The formatted representation.
     """
@@ -78,11 +78,11 @@ def format_tsb(*, tsb: int, width: int = 0) -> str:
 def format_variability_index(*, activity: Activity, width: int = 0) -> str:
     """
     Format a representation of the variability index.
-    
+
     Args:
         activity: The activity whose variability index should be formatted.
         width: The width to format to.
-    
+
     Returns:
         The formatted representation.
     """
@@ -113,7 +113,7 @@ class LeftRightPrinter:
     def __init__(self, left_width: int = 80):
         """
         Initialise the printer.
-        
+
         Args:
             left_width: The width of the left-hand column. Defaults to 80.
         """
@@ -124,7 +124,7 @@ class LeftRightPrinter:
     def add_left(self, text: str = ""):
         """
         Add text to the left-hand column
-        
+
         Args:
             text: A line of text for the left-hand column. Defaults to "".
         """
@@ -133,7 +133,7 @@ class LeftRightPrinter:
     def add_right(self, text: str = ""):
         """
         Add text to the right-hand column
-        
+
         Args:
             text: A line of text for the right-hand column. Defaults to "".
         """
@@ -164,10 +164,10 @@ class LeftRightPrinter:
         """
         Get the width of a text string, but specifically ignore any
         ANSI colour sequences.
-        
+
         Args:
             text: The string we want the displayed glyph length of.
-        
+
         Returns:
             The string's displayed length.
         """

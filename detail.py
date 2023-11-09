@@ -38,7 +38,7 @@ ZoneResult = namedtuple("ZoneResult", "name lower upper colour count")
 def detail_report(id: int):
     """
     Print a detailed report.
-    
+
     This will fetch a specific activity from the database, then provide a detailed
     report for it.
     """
@@ -69,7 +69,7 @@ def detail_report(id: int):
 def _print_basic_data(activity: Activity):
     """
     Print the basic data for an activity.
-    
+
     Args:
         activity: The activity to print data for.
     """
@@ -108,7 +108,7 @@ def _print_basic_data(activity: Activity):
 def _print_power(activity: Activity):
     """
     Print the power information for an activity.
-    
+
     Args:
         activity: The activity to print power information for.
     """
@@ -121,7 +121,7 @@ def _print_power(activity: Activity):
 def _print_power_data(activity: Activity, lrp: LeftRightPrinter):
     """
     Print the power data we have for an activity.
-    
+
     Args:
         activity: The activity to print power data for.
     """
@@ -188,7 +188,7 @@ def _print_power_zones(activity: Activity, lrp: LeftRightPrinter):
 def _print_heart(activity: Activity):
     """
     Print the heart information for an activity.
-    
+
     Args:
         activity: The activity to print heart information for.
     """
@@ -201,7 +201,7 @@ def _print_heart(activity: Activity):
 def _print_hr_data(activity: Activity, lrp: LeftRightPrinter):
     """
     Print the HR data we have for an activity.
-    
+
     Args:
         activity: The activity to print HR data for.
     """
@@ -258,7 +258,7 @@ def _print_aerobic_decoupling(activity: Activity):
     Calculate and print the aerobic decoupling ratio.
 
     Taken from https://www.trainingpeaks.com/blog/aerobic-endurance-and-decoupling.
-    
+
     Args:
         activity: The activity data.
     """
@@ -282,7 +282,7 @@ def _print_aerobic_decoupling(activity: Activity):
 def _print_peaks(activity: Activity):
     """
     Print the peak details for an activity.
-    
+
     Args:
         activity: The activity to report on.
     """
@@ -339,10 +339,10 @@ def _print_peaks(activity: Activity):
 def _calculate_power_zones(activity: Activity) -> List[CalculatedZone]:
     """
     Given an activity, determine what the various power zones are.
-    
+
     Args:
         activity: The activity whose power zones we're calculating.
-    
+
     Returns:
         The list of power zones. Each is a PowerZone with a name, lower,
         and upper watt limits.

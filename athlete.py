@@ -34,10 +34,10 @@ class HeartRateData:
 def get_ftp(when: datetime) -> Optional[int]:
     """
     Get the FTP value that is in effect for a particular date.
-    
+
     Args:
         when: The date we want an FTP value for.
-    
+
     Returns:
         Optional[int]: The FTP in effect for that date, if any.
     """
@@ -50,7 +50,7 @@ def get_hr(when: datetime) -> Optional[HeartRateData]:
     """
     Get the athlete's resting and maximum heart rate that is in effect for
     a particular date.
-    
+
     Args:
         when: The date we want heart rate data for.
 
@@ -61,16 +61,20 @@ def get_hr(when: datetime) -> Optional[HeartRateData]:
     if not (athlete_data := _get_applicable_entry(when)):
         return None
 
-    return HeartRateData(rest_heart_rate=athlete_data.rest_heart_rate, threshold_heart_rate=athlete_data.threshold_heart_rate, max_heart_rate=athlete_data.max_heart_rate,)
+    return HeartRateData(
+        rest_heart_rate=athlete_data.rest_heart_rate,
+        threshold_heart_rate=athlete_data.threshold_heart_rate,
+        max_heart_rate=athlete_data.max_heart_rate,
+    )
 
 
 def _get_applicable_entry(when: datetime) -> Optional[AthleteData]:
     """
     Get the athlete data entry that's applicable for a certain date.
-    
+
     Args:
         when: The data whose entry we want.
-    
+
     Returns:
         Optional[AthleteData]: The athlete data, if found.
     """
@@ -107,7 +111,7 @@ def _get_athlete_data():
 def _get_all_athlete_data() -> Optional[List[AthleteData]]:
     """
     Fetch the list of all athlete data values.
-    
+
     Returns:
         Optional[List[AthleteData]]: The loaded athlete data.
     """

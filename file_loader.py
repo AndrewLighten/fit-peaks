@@ -2,16 +2,18 @@ from persistence import Persistence
 from activity import Activity
 from load_file_data import load_file_data
 
+
 def load_from_file(*, filename: str, elevation: int):
-    '''
+    """
     Load a FIT file
-    '''
+    """
     _load_from_file(filename=filename, elevation=elevation)
 
+
 def _load_from_file(*, filename: str, elevation: int):
-    '''
-    Load a FIT file.    
-    '''
+    """
+    Load a FIT file.
+    """
 
     # Load the file
     if not (activity_record := load_file_data(path=filename)):
@@ -35,10 +37,10 @@ def _load_from_file(*, filename: str, elevation: int):
 def _derive_title(*, filename: str) -> str:
 
     # replace any underscores with spaces
-    title: str = filename.replace('_', ' ')
+    title: str = filename.replace("_", " ")
 
     # strip any extension
-    ext = title.find('.')
+    ext = title.find(".")
     if ext != -1:
         title = title[0:ext]
 

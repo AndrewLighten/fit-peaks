@@ -93,8 +93,8 @@ class WeeklyFigures:
         self.ctl_total += ctl
         if self.max_ctl is None or ctl > self.max_ctl:
             self.max_ctl = ctl
-            
-    def add_atl(self, atl: int ):
+
+    def add_atl(self, atl: int):
         self.atl_total += atl
         if self.max_atl is None or atl > self.max_atl:
             self.max_atl = atl
@@ -181,9 +181,9 @@ class WeeklyFigures:
 def power_report(all: bool):
     """
     Print a power report.
-    
+
     This will fetch activities from the database, then:
-    
+
     - Find the maximum for each power peak (e.g., max 5 seconds, 30 seconds, etc).
     - Print the activity data for each activity, sorted in date order with a break
       between each week.
@@ -206,7 +206,7 @@ def power_report(all: bool):
     _calculate_transient_values(activities)
 
     # Find the maximum for each value.
-    max = _load_max_values(activities)
+    max_values = _load_max_values(activities)
 
     # Establish the prevailing FTP
     prevailing_ftp = None
@@ -216,78 +216,91 @@ def power_report(all: bool):
 
     # Print the activity data for each week.
     current_weekday = None
+    current_weeknum = None
     for activity in activities:
 
         # Time to break to a new week?
-        if current_weekday is None or current_weekday > activity.start_time.weekday():
+        if current_weekday is None or current_weekday > activity.start_time.weekday() or current_weeknum != activity.start_time.isocalendar()[1]:
             if current_weekday:
-                _print_footer(weekly_figures=weekly_figures, max=max)
+                _print_footer(weekly_figures=weekly_figures, max_values=max_values)
                 weekly_figures = WeeklyFigures()
 
             _print_header()
             any_data_since_header = False
 
         # Capture the weekday.
-        if current_weekday is None or current_weekday != activity.start_time.weekday():
+        if current_weekday is None or current_weekday != activity.start_time.weekday() or current_weeknum != activity.start_time.isocalendar()[1]:
             weekly_figures.add_work_day()
             new_day = True
             if any_data_since_header:
                 print()
 
         current_weekday = activity.start_time.weekday()
+        current_weeknum = activity.start_time.isocalendar()[1]
 
         # New FTP?
         activity_ftp = get_ftp(activity.start_time)
-        new_ftp = prevailing_ftp and activity_ftp > prevailing_ftp
+        new_ftp = prevailing_ftp and activity_ftp != prevailing_ftp
         prevailing_ftp = activity_ftp
 
         # Print the detail.
-        _print_detail(activity=activity, max=max, new_ftp=new_ftp, new_day=new_day, new_week=not any_data_since_header)
+        _print_detail(activity=activity, max=max_values, new_ftp=new_ftp, new_day=new_day, new_week=not any_data_since_header)
         new_day = False
         any_data_since_header = True
 
-        # Find the duration.
-        duration = activity.end_time - activity.start_time
-
         # Accumulate for this week
-        weekly_figures.add_distance(activity.distance)
-        if activity.elevation:
-            weekly_figures.add_elevation(activity.elevation)
-        weekly_figures.add_tss(activity.tss)
-        if activity.first_for_day:
-            weekly_figures.add_ctl(activity.ctl)
-            weekly_figures.add_atl(activity.atl)
-            weekly_figures.add_tsb(activity.ctl - activity.atl)
-        weekly_figures.add_duration(duration)
-
-        weekly_figures.add_5sec(activity.peak_5sec_power)
-        weekly_figures.add_30sec(activity.peak_30sec_power)
-        weekly_figures.add_60sec(activity.peak_60sec_power)
-        if activity.peak_5min_power:
-            weekly_figures.add_5min(activity.peak_5min_power)
-        if activity.peak_10min_power:
-            weekly_figures.add_10min(activity.peak_10min_power)
-        if activity.peak_20min_power:
-            weekly_figures.add_20min(activity.peak_20min_power)
-        if activity.peak_30min_power:
-            weekly_figures.add_30min(activity.peak_30min_power)
-        if activity.peak_60min_power:
-            weekly_figures.add_60min(activity.peak_60min_power)
-        if activity.peak_90min_power:
-            weekly_figures.add_90min(activity.peak_90min_power)
-        if activity.peak_120min_power:
-            weekly_figures.add_120min(activity.peak_120min_power)
-
-        weekly_figures.add_pmax(activity.max_power)
-        weekly_figures.add_pavg(activity.avg_power)
-        weekly_figures.add_pnor(activity.normalised_power)
-        weekly_figures.add_if(activity.intensity_factor)
+        _accumulate_weekly_figures(weekly_figures, activity)
 
     # Final footer.
-    _print_footer(weekly_figures=weekly_figures, max=max)
+    _print_footer(weekly_figures=weekly_figures, max_values=max_values)
 
     # Print the summary.
-    _print_summary(max)
+    _print_summary(max_values)
+
+
+def _accumulate_weekly_figures(weekly_figures: WeeklyFigures, activity: Activity):
+    """
+    Accumulate the weekly figures.
+
+    Args:
+        weekly_figures (WeeklyFigures): The weekly figures we're building up.
+        activity (Activity): The activity we're accumulating.
+    """
+
+    weekly_figures.add_distance(activity.distance)
+    if activity.elevation:
+        weekly_figures.add_elevation(activity.elevation)
+    weekly_figures.add_tss(activity.tss)
+    if activity.first_for_day:
+        weekly_figures.add_ctl(activity.ctl)
+        weekly_figures.add_atl(activity.atl)
+        weekly_figures.add_tsb(activity.ctl - activity.atl)
+
+    duration = activity.end_time - activity.start_time
+    weekly_figures.add_duration(duration)
+
+    weekly_figures.add_5sec(activity.peak_5sec_power)
+    weekly_figures.add_30sec(activity.peak_30sec_power)
+    weekly_figures.add_60sec(activity.peak_60sec_power)
+    if activity.peak_5min_power:
+        weekly_figures.add_5min(activity.peak_5min_power)
+    if activity.peak_10min_power:
+        weekly_figures.add_10min(activity.peak_10min_power)
+    if activity.peak_20min_power:
+        weekly_figures.add_20min(activity.peak_20min_power)
+    if activity.peak_30min_power:
+        weekly_figures.add_30min(activity.peak_30min_power)
+    if activity.peak_60min_power:
+        weekly_figures.add_60min(activity.peak_60min_power)
+    if activity.peak_90min_power:
+        weekly_figures.add_90min(activity.peak_90min_power)
+    if activity.peak_120min_power:
+        weekly_figures.add_120min(activity.peak_120min_power)
+
+    weekly_figures.add_pmax(activity.max_power)
+    weekly_figures.add_pavg(activity.avg_power)
+    weekly_figures.add_pnor(activity.normalised_power)
+    weekly_figures.add_if(activity.intensity_factor)
 
 
 def _print_header():
@@ -320,7 +333,7 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
     elevation = (format(activity.elevation, ",d") + "m").rjust(6) if activity.elevation else "".rjust(6)
     activity_name = activity.activity_name.ljust(40) if activity.activity_name else "(Unknown)".ljust(40)
     if len(activity_name) > 40:
-        activity_name = f'{activity_name[:37]}...'
+        activity_name = f"{activity_name[:37]}..."
     speed = (format(activity.speed_in_kmhr, ".2f") + "km/hr").rjust(10)
 
     # Find the power figures
@@ -378,7 +391,7 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
 
     ctl_text = format_ctl(ctl=ctl, width=3) if activity.first_for_day else "   "
     atl_text = format_atl(atl=atl, width=3) if activity.first_for_day else "   "
-    tsb_text = _get_decorated_tsb(tsb=tsb) if activity.first_for_day else "   " 
+    tsb_text = _get_decorated_tsb(tsb=tsb) if activity.first_for_day else "   "
 
     # Print the data.
     print(
@@ -389,7 +402,7 @@ def _print_detail(*, activity: Activity, max: Dict[str, List[int]], new_ftp: boo
 def _print_summary(max: Dict[str, List[int]]):
     """
     Print a summary of our highest ever peaks.
-    
+
     Args:
         max: Our collection of maximum peaks.
     """
@@ -422,7 +435,7 @@ def _print_summary(max: Dict[str, List[int]]):
     p20min_1 = (str(max["20min"][1]) if "20min" in max else "").rjust(4)
     p30min_1 = (str(max["30min"][1]) if "30min" in max else "").rjust(4)
     p60min_1 = (str(max["60min"][1]) if "60min" in max else "").rjust(4)
-    p90min_1 = (str(max["90min"][1]) if "90min" in max else "").rjust(4)
+    p90min_1 = (str(max["90min"][1]) if "90min" in max and len(max["90min"]) > 1 else "").rjust(4)
     p120min_1 = (str(max["120min"][1]) if "120min" in max and len(max["120min"]) > 1 else "").rjust(4)
     pMax_1 = (str(max["pMax"][1]) if "pMax" in max else "").rjust(4)
     pAvg_1 = (str(max["pAvg"][1]) if "pAvg" in max else "").rjust(4)
@@ -441,7 +454,7 @@ def _print_summary(max: Dict[str, List[int]]):
     p20min_2 = (str(max["20min"][2]) if "20min" in max else "").rjust(4)
     p30min_2 = (str(max["30min"][2]) if "30min" in max else "").rjust(4)
     p60min_2 = (str(max["60min"][2]) if "60min" in max else "").rjust(4)
-    p90min_2 = (str(max["90min"][2]) if "90min" in max  and len(max["90min"]) > 2 else "").rjust(4)
+    p90min_2 = (str(max["90min"][2]) if "90min" in max and len(max["90min"]) > 2 else "").rjust(4)
     p120min_2 = (str(max["120min"][2]) if "120min" in max and len(max["120min"]) > 2 else "").rjust(4)
     pMax_2 = (str(max["pMax"][2]) if "pMax" in max else "").rjust(4)
     pAvg_2 = (str(max["pAvg"][2]) if "pAvg" in max else "").rjust(4)
@@ -507,7 +520,7 @@ def _print_fitness(fitness):
     print()
 
 
-def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
+def _print_footer(*, weekly_figures: WeeklyFigures, max_values: Dict[str, List[int]]):
     """
     Print a footer.
     """
@@ -525,14 +538,14 @@ def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
     distance_maximum = (format(round(weekly_figures.max_distance / 1000, 2), ".2f") + "km").rjust(8)
 
     elevation_average_delta = int(weekly_figures.elevation_total / weekly_figures.work_days)
-    elevation_average = (str(elevation_average_delta) + "m").rjust(6)
-    elevation_maximum = (str(weekly_figures.max_elevation) + "m").rjust(6)
+    elevation_average = f"{elevation_average_delta}m".rjust(6)
+    elevation_maximum = f"{str(weekly_figures.max_elevation)}m".rjust(6)
 
     duration_average_delta = weekly_figures.duration_total / weekly_figures.work_days
     duration_average = str(duration_average_delta).split(".")[0].rjust(8)
     duration_maximum = str(weekly_figures.max_duration).split(".")[0].rjust(8)
 
-    if_average_text = (format(round(weekly_figures.if_total / weekly_figures.if_count,2), ".2f")).rjust(4)
+    if_average_text = (format(round(weekly_figures.if_total / weekly_figures.if_count, 2), ".2f")).rjust(4)
     tss_average_text = str(int(weekly_figures.tss_total / weekly_figures.work_days)).rjust(4)
     tss_total_text = str(int(weekly_figures.tss_total)).rjust(4)
     tss_maximum_text = str(int(weekly_figures.max_tss)).rjust(4)
@@ -576,19 +589,19 @@ def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
     max_pnor = _maximum(weekly_figures.max_pnor)
     max_if = format(weekly_figures.max_if, ".2f")
 
-    max_5sec = _decorate(weekly_figures.max_5sec, max["5sec"], max_5sec)
-    max_30sec = _decorate(weekly_figures.max_30sec, max["30sec"], max_30sec)
-    max_60sec = _decorate(weekly_figures.max_60sec, max["60sec"], max_60sec)
-    max_5min = _decorate(weekly_figures.max_5min, max["5min"], max_5min)
-    max_10min = _decorate(weekly_figures.max_10min, max["10min"], max_10min)
-    max_20min = _decorate(weekly_figures.max_20min, max["20min"], max_20min)
-    max_30min = _decorate(weekly_figures.max_30min, max["30min"], max_30min)
-    max_60min = _decorate(weekly_figures.max_60min, max["60min"], max_60min)
-    max_90min = _decorate(weekly_figures.max_90min, max["90min"], max_90min) if "90min" in max.keys() else max_90min
-    max_120min = _decorate(weekly_figures.max_120min, max["120min"], max_120min) if "120min" in max.keys() else max_120min
-    max_pmax = _decorate(weekly_figures.max_pmax, max["pMax"], max_pmax)
-    max_pavg = _decorate(weekly_figures.max_pavg, max["pAvg"], max_pavg)
-    max_pnor = _decorate(weekly_figures.max_pnor, max["pNor"], max_pnor)
+    max_5sec = _decorate(weekly_figures.max_5sec, max_values["5sec"], max_5sec)
+    max_30sec = _decorate(weekly_figures.max_30sec, max_values["30sec"], max_30sec)
+    max_60sec = _decorate(weekly_figures.max_60sec, max_values["60sec"], max_60sec)
+    max_5min = _decorate(weekly_figures.max_5min, max_values["5min"], max_5min)
+    max_10min = _decorate(weekly_figures.max_10min, max_values["10min"], max_10min)
+    max_20min = _decorate(weekly_figures.max_20min, max_values["20min"], max_20min)
+    max_30min = _decorate(weekly_figures.max_30min, max_values["30min"], max_30min)
+    max_60min = _decorate(weekly_figures.max_60min, max_values["60min"], max_60min)
+    max_90min = _decorate(weekly_figures.max_90min, max_values["90min"], max_90min) if "90min" in max_values.keys() else max_90min
+    max_120min = _decorate(weekly_figures.max_120min, max_values["120min"], max_120min) if "120min" in max_values.keys() else max_120min
+    max_pmax = _decorate(weekly_figures.max_pmax, max_values["pMax"], max_pmax)
+    max_pavg = _decorate(weekly_figures.max_pavg, max_values["pAvg"], max_pavg)
+    max_pnor = _decorate(weekly_figures.max_pnor, max_values["pNor"], max_pnor)
 
     print(
         f"                                                      Weekly totals   {distance}      {elevation}           {duration_total}                                                                                                                                {tss_total_text}"
@@ -605,11 +618,12 @@ def _print_footer(*, weekly_figures: WeeklyFigures, max: Dict[str, List[int]]):
 def _get_decorated_tsb(*, tsb: int):
     tsb_text = str(tsb).rjust(3)
     if tsb < -30 or tsb >= 10:
-        return ("\x1B[38;5;196m" + tsb_text + "\x1B[0m")
+        return "\x1B[38;5;196m" + tsb_text + "\x1B[0m"
     elif tsb < -10:
         return "\x1B[38;5;41m" + tsb_text + "\x1B[0m"
     else:
         return "\x1B[38;5;220m" + tsb_text + "\x1B[0m"
+
 
 def _print_separator():
     """
@@ -623,7 +637,7 @@ def _print_separator():
 def _calculate_transient_values(activities: List[Activity]):
     """
     Calculate the transient values for each activity.
-    
+
     Args:
         activities: The activities to calculate the transient values for.
     """
@@ -636,10 +650,10 @@ def _calculate_transient_values(activities: List[Activity]):
 def _load_max_values(activities: List[Activity]) -> Dict[str, List[int]]:
     """
     Given a list of activities, find the overall maximum for each of the peaks.
-    
+
     Args:
         activities: Our activity data.
-    
+
     Returns:
         Dict[str, Any]: The maximum peak for each time period.
     """
@@ -678,7 +692,7 @@ def _load_max_values(activities: List[Activity]) -> Dict[str, List[int]]:
         _max(activity.tss, "tss")
         _max(activity.ctl, "ctl")
         _max(activity.atl, "atl")
-        _max(activity.ctl-activity.atl, "tsb")
+        _max(activity.ctl - activity.atl, "tsb")
 
     # Now sort each list
     for key in max:

@@ -74,6 +74,7 @@ def do_load(filename: str, elevation: int):
     """
     load_from_file(filename=filename, elevation=elevation)
 
+
 def main():
     cli.add_command(fetch)
     cli.add_command(do_power_report)

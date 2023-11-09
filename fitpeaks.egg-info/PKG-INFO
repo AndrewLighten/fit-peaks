@@ -13,9 +13,12 @@ Classifier: Environment :: Console
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: License :: OSI Approved :: Apache Software License
 Classifier: Intended Audience :: End Users/Desktop
-Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.11
 Classifier: Natural Language :: English
-Requires-Python: >=3.8
+Requires-Python: >=3.11
+Requires-Dist: Click>=7.0
+Requires-Dist: termcolor>=1.1.0
+Requires-Dist: fitparse>=1.1.0
+Requires-Dist: zwift-client>=0.2.0
 
 A tool for loading and displaying fitness peaks
-

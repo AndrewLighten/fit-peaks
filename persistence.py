@@ -198,7 +198,7 @@ class Persistence:
     def get_known_ids(self) -> Set[str]:
         """
         Get the list of activity IDs we already have.
-        
+
         Returns:
             A set of activity IDs.
         """
@@ -214,10 +214,10 @@ class Persistence:
     def load_by_id(self, id: int) -> Optional[Activity]:
         """
         Load a given activity's data.
-        
+
         Args:
             id: The ID of the activity whose data should be loaded.
-        
+
         Returns:
             The activity, if found.
         """
@@ -233,7 +233,7 @@ class Persistence:
     def load_all(self) -> List[Activity]:
         """
         Load all activity data we have.
-        
+
         Returns:
             The list of activities.
         """
@@ -258,10 +258,10 @@ class Persistence:
     def _create_activity(self, *, record: Tuple) -> Activity:
         """
         Create an Activities object given a database record.
-        
+
         Args:
             record: The data we've retrieved from SQLite.
-        
+
         Returns:
             The activity data object.
         """
@@ -350,7 +350,7 @@ class Persistence:
     def store(self, *, activity: Activity):
         """
         Persist an activity in the SQLite database.
-        
+
         Args:
             activity: The activity to persist.
         """

@@ -1,13 +1,12 @@
-import itertools
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from datetime import datetime, timedelta
-from dateutil import tz
 from dataclasses import dataclass
 
 from fitparse import FitFile
-from fitparse.utils import FitParseError
 from calculations import calculate_normalised_power, get_moving_average
 from activity import Activity
+
+MAX_REASONABLE_POWER = 1500  # The maximum reasonable power reading we'll accept.
 
 
 @dataclass
@@ -58,10 +57,10 @@ HR_AVERAGES = {
 def load_file_data(*, path: str) -> Activity:
     """
     Get the peak data from the nominated file.
-    
+
     Args:
         path: The file to load.
-    
+
     Returns:
         The peak data we loaded from the file.
     """
@@ -97,7 +96,7 @@ def load_file_data(*, path: str) -> Activity:
 def _load_peaks(source: List[int], attributes: Dict[int, str], activity: Activity):
     """
     Load a set of peak data from the nominated source data.
-    
+
     The source data we're given is either the time-series collection of power figures,
     or the time-series collection of HR figures.
 
@@ -114,7 +113,7 @@ def _load_peaks(source: List[int], attributes: Dict[int, str], activity: Activit
     """
 
     for window, attr_name in attributes.items():
-        if (moving_average := get_moving_average(source=source, window=window)) :
+        if moving_average := get_moving_average(source=source, window=window):
             activity.__dict__[attr_name] = int(max(moving_average))
         else:
             activity.__dict__[attr_name] = None
@@ -123,10 +122,10 @@ def _load_peaks(source: List[int], attributes: Dict[int, str], activity: Activit
 def _load_file_data(*, fitfile: FitFile) -> LoadedData:
     """
     Load the data from the nominated file.
-    
+
     Args:
         fitfile: The file to load the data from.
-    
+
     Returns:
         The data we loaded.
     """
@@ -138,6 +137,7 @@ def _load_file_data(*, fitfile: FitFile) -> LoadedData:
     hr = []
     distance = 0.0
     moving_time = 0
+    last_power = 0
 
     # Iterate over the file.
     for record in fitfile.get_messages("record"):
@@ -170,7 +170,11 @@ def _load_file_data(*, fitfile: FitFile) -> LoadedData:
 
             # Fetch power.
             if record_data.name == "power":
-                power.append(int(record_data.value))
+                this_power = int(record_data.value)
+                if this_power > MAX_REASONABLE_POWER:
+                    this_power = last_power
+                power.append(this_power)
+                last_power = this_power
 
             # Fetch HR.
             if record_data.name == "heart_rate":

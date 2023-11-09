@@ -120,10 +120,10 @@ def _determine_first_for_day(activities: List[Activity]):
 def calculate_aerobic_decoupling(activity: Activity) -> Optional[AerobicDecoupling]:
     """
     Calculate the aerobic decoupling for an activity.
-    
+
     Args:
         activity (Activity): The activity to calculate for.
-    
+
     Returns:
         The aerobic decoupling.
     """
@@ -158,10 +158,10 @@ def calculate_aerobic_decoupling(activity: Activity) -> Optional[AerobicDecoupli
 def calculate_fitness(*, activities: List[Activity]) -> Fitness:
     """
     Calculate fitness given a list of activities.
-    
+
     Args:
         activities: The activities.
-    
+
     Returns:
         Fitness: The fitness, including CTL, ATL, and TSB.
     """
@@ -182,7 +182,7 @@ def calculate_fitness(*, activities: List[Activity]) -> Fitness:
 def calculate_normalised_power(*, power: List[int]) -> int:
     """
     Given a collection of power figures, calculate the normalised power.
-    
+
     This algorithm comes from the book ‘Training and Racing with a Power Meter’,
     by Hunter and Allen via the blog post at
     https://medium.com/critical-powers/formulas-from-training-and-racing-with-a-power-meter-2a295c661b46.
@@ -190,8 +190,8 @@ def calculate_normalised_power(*, power: List[int]) -> int:
     In essence, it's as follows:
 
     Step 1
-        Calculate the rolling average with a window of 30 seconds: 
-        Start at 30 seconds, calculate the average power of the previous 
+        Calculate the rolling average with a window of 30 seconds:
+        Start at 30 seconds, calculate the average power of the previous
         30 seconds and to the end for every second after that.
 
     Step 2
@@ -206,7 +206,7 @@ def calculate_normalised_power(*, power: List[int]) -> int:
 
     Args:
         power: The power figures for each second.
-    
+
     Returns:
         int: The normalised power.
     """
@@ -234,11 +234,11 @@ def get_moving_average(*, source: List[int], window: int) -> List[int]:
     Get a moving average from an iterable value.
 
     Note: Any zero values are ignored.
-    
+
     Args:
         source: The data to iterate over.
         window: The moving average window, in seconds.
-    
+
     Returns:
          The moving averages found in the data.
     """
@@ -271,14 +271,14 @@ def _calculate_training_load(*, activities: List[Activity], days: int) -> int:
     """
     Given a list of activities, and a number of days, calculate the training load for the
     specified number of days.
-    
+
     For example: given all activities in the database, and "42' as the number of days,
     this will calculate the classic CTL value.
-    
+
     Args:
         activities: The activities to consider.
         days:       The number of days to include in the training load calculation.
-    
+
     Returns:
         The training load.
     """
@@ -297,11 +297,11 @@ def _calculate_training_load(*, activities: List[Activity], days: int) -> int:
 def _calculate_daily_tss(*, activities: List[Activity], days: int) -> List[int]:
     """
     Sum the TSS for each day in the given number of days.
-    
+
     Args:
         activities: The list of activities.
         days:       The number of days to include in the sum (counting back from today).
-    
+
     Returns:
         A list of tss values. The length of this list will match the given number
         of days. The last value is today's TSS.
@@ -353,11 +353,11 @@ def _calculate_daily_tss(*, activities: List[Activity], days: int) -> List[int]:
 def _calculate_aerobic_ratio(*, power: List[int], hr: List[int]) -> Optional[float]:
     """
     Given a list of power and HR details, find the ratio between their averages.
-    
+
     Args:
         power: The list of power values.
         hr: The list of HR values.
-    
+
     Returns:
         The ratio between their averages.
     """

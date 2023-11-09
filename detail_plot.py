@@ -17,7 +17,7 @@ from scipy.ndimage.filters import gaussian_filter1d
 def detail_plot_report(id: int):
     """
     Plot the result of an activity.
-    
+
     This will fetch a specific activity from the database, then plot its power
     and heart rate data.
     """
@@ -41,7 +41,7 @@ def detail_plot_report(id: int):
 def _generate_power_plot(activity: Activity):
     """
     Generate a plot of power over the activity.
-    
+
     Args:
         activity: The activity whose power we're plotting.
     """
