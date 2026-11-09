@@ -19,7 +19,7 @@ setup(
         "fitpeaks.py",
         "hr.py",
         "persistence.py",
-        "zwift_loader.py"
+        "zwift_loader.py",
     ],
     # metadata to display on PyPI
     author="Andrew Lighten",
@@ -47,10 +47,5 @@ setup(
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: POSIX :: Linux",
     ],
-    install_requires=[
-        "Click>=7.0",
-        "termcolor>=1.1.0",
-        "fitparse>=1.1.0",
-        "zwift-client>=0.2.0"
-    ],
+    install_requires=["Click>=7.0", "termcolor>=1.1.0", "fitparse>=1.1.0", "zwift-client>=0.2.0"],
 )

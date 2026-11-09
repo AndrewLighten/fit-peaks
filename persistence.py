@@ -114,9 +114,9 @@ class SelectIndices(Enum):
 
 SELECT_ID_LIST = "select zwift_id from activity"
 
-SELECT_ALL = SELECT + " where peak_5min_power is not null order by start_time"
+SELECT_ALL = SELECT + " order by start_time"
 
-SELECT_FROM_DATE = SELECT + " where peak_5min_power is not null and start_time >= :start_date order by start_time"
+SELECT_FROM_DATE = SELECT + " where start_time >= :start_date order by start_time"
 
 INSERT_SQL = """
     insert into activity 
